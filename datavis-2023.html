@@ -32,12 +32,12 @@
   figure{margin:.6rem 0 0;border-radius:12px;overflow:hidden;border:1px solid var(--ring);background:#0e141c}
   figure img{display:block;width:100%;height:auto}
   figcaption{font-size:.86rem;color:var(--muted);padding:.5rem .75rem;border-top:1px solid var(--ring);display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+
   /* Larger images for the two requested blocks */
   .big-figure img{width:100%;height:auto;max-height:1600px;object-fit:contain}
-  .gender-figure img {
-  width: auto;
-  height: 800px;   /* Force tall display */
-}
+
+  /* Make Gender chart extra large (works even if max-height was ignored) */
+  .gender-figure img{width:auto;height:800px}
 
   /* group toggling */
   .group{display:none}
@@ -49,86 +49,152 @@
 <h1>New Mexico Behavioral Health &amp; Demographics Dashboard (2023)</h1>
 
 <div class="toolbar" role="tablist" aria-label="Show insight groups">
-    <button class="btn active" data-group="demographics" role="tab" aria-selected="true">Demographics</button>
+  <button class="btn active" data-group="demographics" role="tab" aria-selected="true">Demographics</button>
   <button class="btn" data-group="service" role="tab" aria-selected="false">Service Demand</button>
   <button class="btn" data-group="mortality" role="tab" aria-selected="false">Mortality</button>
-  
   <button class="btn" data-group="dwi" role="tab" aria-selected="false">DWI Dispositions</button>
   <button class="btn" id="btn-all" role="tab" aria-selected="false">Show All</button>
 </div>
 
 <main>
   <section class="grid">
+
     <!-- DEMOGRAPHICS (first) -->
     <article class="card group show" data-group="demographics">
-      <h2><span class="icon-wrap"><img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Race%20by%20county.png" alt=""></span>1) Population by Race/Ethnicity</h2>
+      <h2>
+        <span class="icon-wrap">
+          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="Race icon">
+        </span>
+        1) Population by Race/Ethnicity
+      </h2>
       <ul class="insights">
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Race%20by%20county.png"><div>White residents are the majority across most counties, with notable <strong>AI/AN</strong> concentrations in <strong>McKinley</strong>, <strong>Cibola</strong>, and <strong>Rio Arriba</strong>.</div></li>
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Race%20by%20county.png"><div><strong>Santa Fe</strong> and <strong>Bernalillo</strong> show greater racial diversity than many rural counties.</div></li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="">
+          <div>White residents are the majority across most counties, with notable <strong>AI/AN</strong> concentrations in <strong>McKinley</strong>, <strong>Cibola</strong>, and <strong>Rio Arriba</strong>.</div>
+        </li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="">
+          <div><strong>Santa Fe</strong> and <strong>Bernalillo</strong> show greater racial diversity than many rural counties.</div>
+        </li>
       </ul>
       <figure>
-        <img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Race%20by%20county.png" alt="">
+        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="Race/Ethnicity by County">
         <figcaption><span>Race/Ethnicity by County (100% stacked)</span></figcaption>
       </figure>
     </article>
 
     <article class="card group show" data-group="demographics">
-      <h2><span class="icon-wrap"><img src="New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Gender.png" alt=""></span>2) Age &amp; Gender Distribution</h2>
+      <h2>
+        <span class="icon-wrap">
+          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="Gender icon">
+        </span>
+        2) Age &amp; Gender Distribution
+      </h2>
       <ul class="insights">
-        <li class="insight-item"><img class="bullet-icon" src="New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Gender.png"><div>Most counties have a clear majority <strong>18+ (75–85%)</strong>, indicating adult-driven service demand.</div></li>
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Gender.png"><div>Younger structures in <strong>Lea</strong> and <strong>McKinley</strong> may signal higher future service needs.</div></li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="">
+          <div>Most counties have a clear majority <strong>18+ (75–85%)</strong>, indicating adult-driven service demand.</div>
+        </li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="">
+          <div>Younger structures in <strong>Lea</strong> and <strong>McKinley</strong> may signal higher future service needs.</div>
+        </li>
       </ul>
-      <figure class="big-figure">
-        <img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Gender.png" alt="">
+      <figure class="big-figure gender-figure">
+        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="Age Distribution by Sex">
         <figcaption><span>Age Distribution by Sex (Under 18 vs 18+)</span></figcaption>
       </figure>
     </article>
 
     <!-- SERVICE DEMAND -->
     <article class="card group" data-group="service">
-      <h2><span class="icon-wrap"><img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/behavioural%20metrix%20by%20county.png" alt=""></span>3) Service Demand & Behavioral Health Metrics</h2>
+      <h2>
+        <span class="icon-wrap">
+          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="Service icon">
+        </span>
+        3) Service Demand &amp; Behavioral Health Metrics
+      </h2>
       <ul class="insights">
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Downloads/behavioural%20metrix%20by%20county.png"><div>Crisis calls, dispatches, and ER visits are heavily concentrated in <strong>Bernalillo</strong>, <strong>Doña Ana</strong>, and <strong>San Juan</strong>.</div></li>
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Downloads/behavioural%20metrix%20by%20county.png"><div>Smaller rural counties like <strong>Catron</strong>, <strong>De Baca</strong>, and <strong>Harding</strong> show minimal use and low reported deaths.</div></li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="">
+          <div>Crisis calls, dispatches, and ER visits are heavily concentrated in <strong>Bernalillo</strong>, <strong>Doña Ana</strong>, and <strong>San Juan</strong>.</div>
+        </li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="">
+          <div>Smaller rural counties like <strong>Catron</strong>, <strong>De Baca</strong>, and <strong>Harding</strong> show minimal use and low reported deaths.</div>
+        </li>
       </ul>
       <figure>
-        <img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/behavioural%20metrix%20by%20county.png" alt="">
+        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="BH Service Metrics">
       </figure>
     </article>
 
     <!-- MORTALITY -->
     <article class="card group" data-group="mortality">
-      <h2><span class="icon-wrap"><img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20deaths%202.png" alt=""></span>4) Drug Overdose Deaths (Counts)</h2>
+      <h2>
+        <span class="icon-wrap">
+          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="Deaths icon">
+        </span>
+        4) Drug Overdose Deaths (Counts)
+      </h2>
       <ul class="insights">
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20deaths%202.png"><div><strong>Bernalillo (376 deaths)</strong> accounts for nearly 40% of statewide drug deaths (948 total).</div></li>
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20deaths%202.png"><div>Other major contributors include <strong>Santa Fe</strong>, <strong>Doña Ana</strong>, and <strong>Rio Arriba</strong>.</div></li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="">
+          <div><strong>Bernalillo (376 deaths)</strong> accounts for nearly 40% of statewide drug deaths (948 total).</div>
+        </li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="">
+          <div>Other major contributors include <strong>Santa Fe</strong>, <strong>Doña Ana</strong>, and <strong>Rio Arriba</strong>.</div>
+        </li>
       </ul>
       <figure class="big-figure">
-        <img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20deaths%202.png" alt="">
+        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="Overdose Deaths by County">
         <figcaption><span>Overdose Deaths by County (Counts)</span></figcaption>
       </figure>
     </article>
 
     <article class="card group" data-group="mortality">
-      <h2><span class="icon-wrap"><img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20rates.png" alt=""></span>5) Deaths vs Population Context</h2>
+      <h2>
+        <span class="icon-wrap">
+          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="Rates icon">
+        </span>
+        5) Deaths vs Population Context
+      </h2>
       <ul class="insights">
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20rates.png"><div><strong>Rio Arriba</strong> and <strong>Torrance</strong> show disproportionately high overdose burdens.</div></li>
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20rates.png"><div>Rural counties face outsized mortality despite smaller populations.</div></li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="">
+          <div><strong>Rio Arriba</strong> and <strong>Torrance</strong> show disproportionately high overdose burdens.</div>
+        </li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="">
+          <div>Rural counties face outsized mortality despite smaller populations.</div>
+        </li>
       </ul>
       <figure>
-        <img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Drug%20overdose%20rates.png" alt="">
+        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="Deaths vs Population">
       </figure>
     </article>
 
     <!-- DWI -->
     <article class="card group" data-group="dwi">
-      <h2><span class="icon-wrap"><img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/DWI%20(2).png" alt=""></span>6) DWI Case Dispositions</h2>
+      <h2>
+        <span class="icon-wrap">
+          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="DWI icon">
+        </span>
+        6) DWI Case Dispositions
+      </h2>
       <ul class="insights">
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/DWI%20(2).png"><div>Conviction rates average <strong>54%</strong> statewide; <strong>Rio Arriba</strong> and <strong>Santa Fe</strong> show longer case times and higher pending rates.</div></li>
-        <li class="insight-item"><img class="bullet-icon" src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/DWI%20(2).png"><div>Faster conviction times in counties like <strong>Curry</strong> and <strong>Guadalupe</strong>.</div></li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="">
+          <div>Conviction rates average <strong>54%</strong> statewide; <strong>Rio Arriba</strong> and <strong>Santa Fe</strong> show longer case times and higher pending rates.</div>
+        </li>
+        <li class="insight-item">
+          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="">
+          <div>Faster conviction times in counties like <strong>Curry</strong> and <strong>Guadalupe</strong>.</div>
+        </li>
       </ul>
       <figure>
-        <img src="https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/DWI%20(2).png" alt="">
+        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="DWI Outcomes">
       </figure>
     </article>
 
@@ -149,39 +215,27 @@
   }
 
   function showGroup(group){
-    // If "Show All" requested
     if(group === 'ALL'){
       groupCards.forEach(c => c.classList.add('show'));
       setActiveButton(btnAll);
-      // Do not scroll on show-all (keeps user context)
       return;
     }
-    // Otherwise show only that group
     groupCards.forEach(c => c.classList.toggle('show', c.dataset.group === group));
     const btn = Array.from(btns).find(b => b.dataset.group === group);
     if(btn) setActiveButton(btn);
-    // Scroll to top of content for clarity
     window.scrollTo({top: document.querySelector('main').offsetTop - 8, behavior:'smooth'});
   }
 
-  // Hook up clicks
   btns.forEach(b=>{
     b.addEventListener('click', ()=>{
       const group = b.dataset.group || (b.id === 'btn-all' ? 'ALL' : null);
       if(group) showGroup(group);
     });
   });
-  /* Larger images for the two requested blocks */
-
-
 
   // Default view: Demographics
   showGroup('demographics');
-  
 </script>
 
 </body>
 </html>
-
-
-
