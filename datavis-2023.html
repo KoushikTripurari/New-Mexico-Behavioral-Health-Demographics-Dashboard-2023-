@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>New Mexico Behavioral Health & Demographics Dashboard (2023)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f14; --card:#121821; --ink:#e9eef5; --muted:#a9b6c7;
+    --turquoise:#00C4BC; --cherry:#C8193C; --purple:#7A1FA2; --accent:#29a3ff;
+    --chip-bg:#1a2230; --ring:#2a3a52;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Inter",system-ui}
+  h1{margin:1.25rem auto .25rem;max-width:1200px;padding:0 1.25rem;font-weight:800;font-size:clamp(1.25rem,2.5vw,2rem)}
+  .toolbar{max-width:1200px;margin:.75rem auto 0;padding:0 1.25rem;display:flex;gap:.5rem;flex-wrap:wrap}
+  .btn{
+    background:var(--chip-bg);color:var(--ink);border:1px solid var(--ring);
+    border-radius:999px;padding:.5rem .9rem;font-weight:600;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{border-color:#3a4d6a}
+  .btn.active{outline:2px solid var(--accent);color:var(--accent)}
+  main{max-width:1200px;margin:1rem auto 2rem;padding:0 1.25rem}
+  .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+  .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:1rem;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .card h2{margin:.1rem 0 .6rem;font-size:1.1rem;display:flex;align-items:center;gap:.5rem}
+  .icon-wrap img{width:22px;height:22px;object-fit:contain}
+  ul.insights{list-style:none;margin:.2rem 0 .8rem;padding:0;display:grid;gap:.4rem}
+  .insight-item{display:grid;grid-template-columns:26px 1fr;gap:.55rem;align-items:start}
+  .bullet-icon{width:22px;height:22px;object-fit:contain;border-radius:6px;border:1px solid var(--ring);background:#0d1320;padding:2px}
+  figure{margin:.6rem 0 0;border-radius:12px;overflow:hidden;border:1px solid var(--ring);background:#0e141c}
+  figure img{display:block;width:100%;height:auto}
+  figcaption{font-size:.86rem;color:var(--muted);padding:.5rem .75rem;border-top:1px solid var(--ring);display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+  /* Larger images for the two requested blocks */
+  .big-figure img{width:100%;height:auto;max-height:1600px;object-fit:contain}
+  .gender-figure img {
+  width: auto;
+  height: 800px;   /* Force tall display */
+}
+
+  /* group toggling */
+  .group{display:none}
+  .group.show{display:block}
+</style>
+</head>
+<body>
+
+<h1>New Mexico Behavioral Health &amp; Demographics Dashboard (2023)</h1>
+
+<div class="toolbar" role="tablist" aria-label="Show insight groups">
+    <button class="btn active" data-group="demographics" role="tab" aria-selected="true">Demographics</button>
+  <button class="btn" data-group="service" role="tab" aria-selected="false">Service Demand</button>
+  <button class="btn" data-group="mortality" role="tab" aria-selected="false">Mortality</button>
+  
+  <button class="btn" data-group="dwi" role="tab" aria-selected="false">DWI Dispositions</button>
+  <button class="btn" id="btn-all" role="tab" aria-selected="false">Show All</button>
+</div>
+
+<main>
+  <section class="grid">
+    <!-- DEMOGRAPHICS (first) -->
+    <article class="card group show" data-group="demographics">
+      <h2><span class="icon-wrap"><img src="file:///C:/Users/KTRIPURARI/Downloads/Race%20by%20county.png" alt=""></span>1) Population by Race/Ethnicity</h2>
+      <ul class="insights">
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Race%20by%20county.png"><div>White residents are the majority across most counties, with notable <strong>AI/AN</strong> concentrations in <strong>McKinley</strong>, <strong>Cibola</strong>, and <strong>Rio Arriba</strong>.</div></li>
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Race%20by%20county.png"><div><strong>Santa Fe</strong> and <strong>Bernalillo</strong> show greater racial diversity than many rural counties.</div></li>
+      </ul>
+      <figure>
+        <img src="file:///C:/Users/KTRIPURARI/Downloads/Race%20by%20county.png" alt="">
+        <figcaption><span>Race/Ethnicity by County (100% stacked)</span></figcaption>
+      </figure>
+    </article>
+
+    <article class="card group show" data-group="demographics">
+      <h2><span class="icon-wrap"><img src="file:///C:/Users/KTRIPURARI/Downloads/Gender.png" alt=""></span>2) Age &amp; Gender Distribution</h2>
+      <ul class="insights">
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Gender.png"><div>Most counties have a clear majority <strong>18+ (75–85%)</strong>, indicating adult-driven service demand.</div></li>
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Gender.png"><div>Younger structures in <strong>Lea</strong> and <strong>McKinley</strong> may signal higher future service needs.</div></li>
+      </ul>
+      <figure class="big-figure">
+        <img src="file:///C:/Users/KTRIPURARI/Downloads/Gender.png" alt="">
+        <figcaption><span>Age Distribution by Sex (Under 18 vs 18+)</span></figcaption>
+      </figure>
+    </article>
+
+    <!-- SERVICE DEMAND -->
+    <article class="card group" data-group="service">
+      <h2><span class="icon-wrap"><img src="file:///C:/Users/KTRIPURARI/Downloads/behavioural%20metrix%20by%20county.png" alt=""></span>3) Service Demand & Behavioral Health Metrics</h2>
+      <ul class="insights">
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/behavioural%20metrix%20by%20county.png"><div>Crisis calls, dispatches, and ER visits are heavily concentrated in <strong>Bernalillo</strong>, <strong>Doña Ana</strong>, and <strong>San Juan</strong>.</div></li>
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/behavioural%20metrix%20by%20county.png"><div>Smaller rural counties like <strong>Catron</strong>, <strong>De Baca</strong>, and <strong>Harding</strong> show minimal use and low reported deaths.</div></li>
+      </ul>
+      <figure>
+        <img src="file:///C:/Users/KTRIPURARI/Downloads/behavioural%20metrix%20by%20county.png" alt="">
+      </figure>
+    </article>
+
+    <!-- MORTALITY -->
+    <article class="card group" data-group="mortality">
+      <h2><span class="icon-wrap"><img src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20deaths%202.png" alt=""></span>4) Drug Overdose Deaths (Counts)</h2>
+      <ul class="insights">
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20deaths%202.png"><div><strong>Bernalillo (376 deaths)</strong> accounts for nearly 40% of statewide drug deaths (948 total).</div></li>
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20deaths%202.png"><div>Other major contributors include <strong>Santa Fe</strong>, <strong>Doña Ana</strong>, and <strong>Rio Arriba</strong>.</div></li>
+      </ul>
+      <figure class="big-figure">
+        <img src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20deaths%202.png" alt="">
+        <figcaption><span>Overdose Deaths by County (Counts)</span></figcaption>
+      </figure>
+    </article>
+
+    <article class="card group" data-group="mortality">
+      <h2><span class="icon-wrap"><img src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20rates.png" alt=""></span>5) Deaths vs Population Context</h2>
+      <ul class="insights">
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20rates.png"><div><strong>Rio Arriba</strong> and <strong>Torrance</strong> show disproportionately high overdose burdens.</div></li>
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20rates.png"><div>Rural counties face outsized mortality despite smaller populations.</div></li>
+      </ul>
+      <figure>
+        <img src="file:///C:/Users/KTRIPURARI/Downloads/Drug%20overdose%20rates.png" alt="">
+      </figure>
+    </article>
+
+    <!-- DWI -->
+    <article class="card group" data-group="dwi">
+      <h2><span class="icon-wrap"><img src="file:///C:/Users/KTRIPURARI/Downloads/DWI%20(2).png" alt=""></span>6) DWI Case Dispositions</h2>
+      <ul class="insights">
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/DWI%20(2).png"><div>Conviction rates average <strong>54%</strong> statewide; <strong>Rio Arriba</strong> and <strong>Santa Fe</strong> show longer case times and higher pending rates.</div></li>
+        <li class="insight-item"><img class="bullet-icon" src="file:///C:/Users/KTRIPURARI/Downloads/DWI%20(2).png"><div>Faster conviction times in counties like <strong>Curry</strong> and <strong>Guadalupe</strong>.</div></li>
+      </ul>
+      <figure>
+        <img src="file:///C:/Users/KTRIPURARI/Downloads/DWI%20(2).png" alt="">
+      </figure>
+    </article>
+
+  </section>
+</main>
+
+<script>
+  const btns = document.querySelectorAll('.btn');
+  const groupCards = document.querySelectorAll('.card.group');
+  const btnAll = document.getElementById('btn-all');
+
+  function setActiveButton(targetBtn){
+    btns.forEach(b=>{
+      const isActive = (b === targetBtn);
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+  }
+
+  function showGroup(group){
+    // If "Show All" requested
+    if(group === 'ALL'){
+      groupCards.forEach(c => c.classList.add('show'));
+      setActiveButton(btnAll);
+      // Do not scroll on show-all (keeps user context)
+      return;
+    }
+    // Otherwise show only that group
+    groupCards.forEach(c => c.classList.toggle('show', c.dataset.group === group));
+    const btn = Array.from(btns).find(b => b.dataset.group === group);
+    if(btn) setActiveButton(btn);
+    // Scroll to top of content for clarity
+    window.scrollTo({top: document.querySelector('main').offsetTop - 8, behavior:'smooth'});
+  }
+
+  // Hook up clicks
+  btns.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const group = b.dataset.group || (b.id === 'btn-all' ? 'ALL' : null);
+      if(group) showGroup(group);
+    });
+  });
+  /* Larger images for the two requested blocks */
+
+
+
+  // Default view: Demographics
+  showGroup('demographics');
+  
+</script>
+
+</body>
+</html>
