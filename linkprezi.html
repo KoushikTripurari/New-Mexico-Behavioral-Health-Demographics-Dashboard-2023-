@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UNM Banner</title>
+  
+</head>
+<body>
+  <div class="unm-banner"> 
+  <div class="unm-banner__inner">
+    <!-- Logo (nudged up) -->
+    <a href="https://unmhealth.org" target="_blank" rel="noopener">
+      <img src="C:\Users\KTRIPURARI\Downloads\unmhsc.png" alt="UNM Health Logo" class="unm-banner__logo" />
+    </a>
+
+    </div>
+</div>
+<style>
+  /* Animated title */
+  .bh-title {
+    margin: 16px;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: bh-rise-in 800ms ease-out 100ms forwards;
+    position: relative;
+  }
+  .bh-title::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    height: 4px;
+    width: 0;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #007A87, #BA0C2F); /* UNM teal → cherry */
+    animation: bh-underline 700ms ease-out 550ms forwards;
+  }
+
+  @keyframes bh-rise-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bh-underline {
+    to { width: 100%; }
+  }
+
+  /* Accessibility: respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .bh-title { opacity: 1; transform: none; animation: none; }
+    .bh-title::after { width: 100%; animation: none; }
+  }
+</style>
+
+<!-- Use this in your body where the title goes -->
+<h1 class="bh-title">Behavioral Health Comparison across New Mexico Regions</h1>
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    h1 { font-size: 1.25rem; margin: 16px; }
+    .prezi-wrap { position: relative; padding-top: 56.25%; height: 0; overflow: hidden; max-width: 100%; }
+    .prezi-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+  </style>
+
+  <div class="prezi-wrap">
+   <iframe src="https://prezi.com/p/embed/AIcHSdtiS9zbCP0IeC5y/" id="iframe_container" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen="" 
+allow="autoplay; fullscreen" height="315" width="560"></iframe>
+  </div>
+<style>
+    body {
+	overflow-x: hidden;
+}
+
+.unm-banner {
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	margin-right: calc(50% - 50vw);
+	height: 120px;
+	box-sizing: border-box;
+	background: linear-gradient(180deg, #007A87 80%, #BA0C2F 20%);
+}
+
+.unm-banner__inner {
+	height: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 20px;
+	font-family: Arial, sans-serif;
+}
+
+/* Logo shifted slightly upward */
+.unm-banner__logo {
+	display: block;
+	max-height: 80px;
+	width: auto;
+	position: relative;
+	top: -8px;
+/* adjust this value (e.g., -5px, -10px) until it looks right */
+}
+</style>
+<!-- Add this inside your <head> or a CSS file -->
+
+
+</body>
+</html>
