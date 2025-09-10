@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crisis Call Rates Comparison</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            max-width: 1200px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        .card {
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        .br2-card {
+            background: linear-gradient(135deg, #f1f2f6 0%, #dfe4ea 100%);
+            border-left: 5px solid #7f8c8d;
+        }
+        .nm-card {
+            background: linear-gradient(135deg, #d6eaf8 0%, #ebf5fb 100%);
+            border-left: 5px solid #3498db;
+        }
+        h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .metric {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .metric-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .value {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+        .year {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        .rate-container {
+            text-align: center;
+            margin: 25px 0 15px;
+        }
+        .rate {
+            font-size: 32px;
+            font-weight: 800;
+            padding: 15px;
+            border-radius: 10px;
+            display: inline-block;
+            min-width: 180px;
+        }
+        .br2-rate {
+            background: #7f8c8d;
+            color: white;
+        }
+        .nm-rate {
+            background: #3498db;
+            color: white;
+        }
+        .trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .key-takeaway {
+            grid-column: span 2;
+            background: #fff9e6;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border-left: 5px solid #f1c40f;
+        }
+        .key-takeaway h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: #d35400;
+        }
+        .key-takeaway ul {
+            list-style-type: none;
+        }
+        .key-takeaway li {
+            margin: 12px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .key-takeaway li:before {
+            content: "•";
+            color: #f39c12;
+            font-size: 24px;
+            position: absolute;
+            left: 0;
+            top: -5px;
+        }
+        .icon {
+            font-size: 24px;
+        }
+        .comparison {
+            grid-column: span 2;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .chart-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .chart {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .chart-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .bar-container {
+            height: 30px;
+            background: #ecf0f1;
+            border-radius: 15px;
+            margin: 15px 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .bar {
+            height: 100%;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .br2-bar {
+            background: #7f8c8d;
+        }
+        .nm-bar {
+            background: #3498db;
+        }
+        .data-table {
+            grid-column: span 2;
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        .data-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .data-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+        .br2-cell {
+            background-color: rgba(127, 140, 141, 0.1);
+        }
+        .nm-cell {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+            grid-column: span 2;
+        }
+        .data-highlight {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+            grid-column: span 2;
+        }
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            .key-takeaway, .comparison, .data-highlight, footer, .data-table {
+                grid-column: 1;
+            }
+            .chart-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Crisis Call Rates: BR2 vs. New Mexico</h1>
+            <div class="subtitle">Comparison of crisis call data (2023-2024)</div>
+        </header>
+        
+        <div class="content">
+            <div class="card br2-card">
+                <h2><i class="fas fa-building"></i> BR2 Service Area</h2>
+                
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-users"></i> Total Population</div>
+                        <div class="value">671,586</div>
+                        <div class="year">2023</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-users"></i> Total Population</div>
+                        <div class="value">671,747</div>
+                        <div class="year">2024</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-phone"></i> Crisis Calls</div>
+                        <div class="value">14,533</div>
+                        <div class="year">2023</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-phone"></i> Crisis Calls</div>
+                        <div class="value">13,856</div>
+                        <div class="year">2024</div>
+                    </div>
+                </div>
+                
+                <div class="rate-container">
+                    <div class="rate br2-rate">2.17% (2023)</div>
+                    <div class="rate br2-rate">2.06% (2024)</div>
+                    <div class="trend">
+                        <i class="fas fa-arrow-down"></i> 
+                        <span>Decreased from 2023 to 2024</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card nm-card">
+                <h2><i class="fas fa-map-marked-alt"></i> State of New Mexico</h2>
+                
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-users"></i> Total Population</div>
+                        <div class="value">2,117,522</div>
+                        <div class="year">2023</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-users"></i> Total Population</div>
+                        <div class="value">2,130,256</div>
+                        <div class="year">2024</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-phone"></i> Crisis Calls</div>
+                        <div class="value">29,977</div>
+                        <div class="year">2023</div>
+                    </div>
+                    
+                    <div class="metric">
+                        <div class="metric-title"><i class="fas fa-phone"></i> Crisis Calls</div>
+                        <div class="value">28,137</div>
+                        <div class="year">2024</div>
+                    </div>
+                </div>
+                
+                <div class="rate-container">
+                    <div class="rate nm-rate">1.42% (2023)</div>
+                    <div class="rate nm-rate">1.32% (2024)</div>
+                    <div class="trend">
+                        <i class="fas fa-arrow-down"></i> 
+                        <span>Decreased from 2023 to 2024</span>
+                    </div>
+                </div>
+            </div>
+            
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th colspan="2">2023</th>
+                        <th colspan="2">2024</th>
+                    </tr>
+                    <tr>
+                        <th>Name</th>
+                        <th>BR2</th>
+                        <th>New Mexico</th>
+                        <th>BR2</th>
+                        <th>New Mexico</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Crisis Calls</td>
+                        <td class="br2-cell">14,533</td>
+                        <td class="nm-cell">29,977</td>
+                        <td class="br2-cell">13,856</td>
+                        <td class="nm-cell">28,137</td>
+                    </tr>
+                    <tr>
+                        <td>Total Population</td>
+                        <td class="br2-cell">671,586</td>
+                        <td class="nm-cell">2,117,522</td>
+                        <td class="br2-cell">671,747</td>
+                        <td class="nm-cell">2,130,256</td>
+                    </tr>
+                    <tr>
+                        <td>Crisis Rate (%)</td>
+                        <td class="br2-cell">2.17%</td>
+                        <td class="nm-cell">1.42%</td>
+                        <td class="br2-cell">2.06%</td>
+                        <td class="nm-cell">1.32%</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="data-highlight">
+                <h3><i class="fas fa-chart-line"></i> Year-over-Year Changes</h3>
+                <p>BR2 crisis calls decreased by 4.7% while New Mexico saw a 6.1% decrease from 2023 to 2024</p>
+            </div>
+            
+            <div class="comparison">
+                <h2><i class="fas fa-chart-bar"></i> Comparative Analysis</h2>
+                
+                <div class="chart-container">
+                    <div class="chart">
+                        <div class="chart-title">Crisis Call Rates Comparison (%)</div>
+                        
+                        <div>BR2 2023: 2.17%</div>
+                        <div class="bar-container">
+                            <div class="bar br2-bar" style="width: 86%">2.17%</div>
+                        </div>
+                        
+                        <div>BR2 2024: 2.06%</div>
+                        <div class="bar-container">
+                            <div class="bar br2-bar" style="width: 82%">2.06%</div>
+                        </div>
+                        
+                        <div>NM 2023: 1.42%</div>
+                        <div class="bar-container">
+                            <div class="bar nm-bar" style="width: 57%">1.42%</div>
+                        </div>
+                        
+                        <div>NM 2024: 1.32%</div>
+                        <div class="bar-container">
+                            <div class="bar nm-bar" style="width: 53%">1.32%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart">
+                        <div class="chart-title">Total Crisis Calls Volume</div>
+                        
+                        <div>BR2 2023: 14,533</div>
+                        <div class="bar-container">
+                            <div class="bar br2-bar" style="width: 34%">14,533</div>
+                        </div>
+                        
+                        <div>BR2 2024: 13,856</div>
+                        <div class="bar-container">
+                            <div class="bar br2-bar" style="width: 32%">13,856</div>
+                        </div>
+                        
+                        <div>NM 2023: 29,977</div>
+                        <div class="bar-container">
+                            <div class="bar nm-bar" style="width: 70%">29,977</div>
+                        </div>
+                        
+                        <div>NM 2024: 28,137</div>
+                        <div class="bar-container">
+                            <div class="bar nm-bar" style="width: 66%">28,137</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #7f8c8d;"></div>
+                        <span>BR2 Service Area</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="color-box" style="background: #3498db;"></div>
+                        <span>New Mexico</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="key-takeaway">
+                <h3><i class="fas fa-lightbulb"></i> Key Insights</h3>
+                <ul>
+                    <li>While New Mexico handles a higher total volume of calls, the BR2 area has a significantly higher per-capita crisis rate</li>
+                    <li>A person in the BR2 area was about 50% more likely to place a crisis call than someone in New Mexico in both years</li>
+                    <li>Both regions saw a decrease in their crisis rates from 2023 to 2024</li>
+                    <li>BR2's population increased slightly while New Mexico's also increased</li>
+                    <li>Despite decreases in raw call numbers, BR2 maintains a substantially higher crisis rate</li>
+                </ul>
+            </div>
+            
+            <footer>
+                <p>Source: Provided Crisis Call Data, 2023-2024 | Visualization designed for comparative analysis</p>
+            </footer>
+        </div>
+    </div>
+</body>
+</html>
