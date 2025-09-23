@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CHW/CHR Guide — Certification & Medicaid Enrollment (New Mexico)</title>
+
+<style>
+  /* =========================================
+     UNM HSC Colors + Global 100% Layout
+     ========================================= */
+  :root{
+    --hsc-turquoise:#007a86;      /* primary */
+    --hsc-turquoise-2:#0c8a96;    /* gradient helper */
+    --hsc-cherry:#ba0c2f;         /* accent */
+    --hsc-gray:#2f3134;
+    --hsc-silver:#a7a8aa;
+    --bg:#f3fafb;
+    --white:#fff;
+
+    /* Clipart sizing */
+    --clip-size: 210px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+    color:var(--hsc-gray);
+    background:var(--bg);
+    line-height:1.55;
+  }
+
+  /* Ensure major blocks are full-width */
+  .brand, header.hero, .bar, main, section, footer { width:100%; }
+
+  /* Top UNM brand bar with turquoise bg + cherry underline */
+  .brand{
+    background:var(--hsc-turquoise);
+    border-bottom:6px solid var(--hsc-cherry);
+    padding:.8rem 1rem;
+    display:flex; align-items:center; gap:.8rem;
+  }
+  .brand img.logo{
+    height:clamp(56px, 5vw, 80px);
+    width:auto; display:block; filter:brightness(0) invert(1);
+  }
+  .brand .brand-text{
+    color:#e9f7f8; font-weight:700; letter-spacing:.04em;
+  }
+
+  /* Title (just below the brand bar) */
+  .title-block{
+    background:#e9f5f6;
+    border-bottom:1px solid #d4eaec;
+    padding:1rem 1rem 1.1rem;
+  }
+  .title-block h1{
+    margin:.1rem 0 .35rem; font-size:clamp(1.4rem, 1.1rem + 2vw, 2.2rem); color:#143a3e;
+  }
+  .title-block p{ margin:0; color:#415053 }
+
+  /* Sticky action bar */
+  .bar{
+    position:sticky; top:0; z-index:20;
+    background:var(--white);
+    border-bottom:1px solid #e6ecec;
+    display:flex; gap:.6rem; align-items:center; justify-content:space-between;
+    padding:.6rem 1rem;
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap:.45rem;
+    background:var(--hsc-turquoise); color:#fff; border:2px solid transparent;
+    padding:.55rem .9rem; border-radius:10px; font-weight:800; text-decoration:none;
+    transition:transform .06s ease, box-shadow .2s ease, background .2s ease;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:0 6px 14px rgba(0,0,0,.12)}
+  .btn.alt{background:var(--hsc-cherry)}
+  a { color: var(--hsc-cherry); }
+
+  /* Hero */
+  header.hero{
+    position:relative;
+    background:linear-gradient(120deg, var(--hsc-turquoise) 0%, var(--hsc-turquoise-2) 100%);
+    color:var(--white);
+    padding:1.25rem 1.25rem;
+  }
+  .hero .kicker{
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-weight:800;
+    opacity:.95;
+  }
+  .hero p{ margin:.35rem 0 0; opacity:.95 }
+
+  /* Glow effect for the tagline line */
+  .glowline{
+    font-weight:700;
+    color:#ffffff;
+    text-shadow:
+      0 0 8px rgba(255,255,255,.75),
+      0 0 16px rgba(186,12,47,.45),
+      0 0 26px rgba(0,122,134,.35);
+    animation: glowPulse 2.2s ease-in-out infinite alternate;
+  }
+  @keyframes glowPulse{
+    from{ text-shadow:
+      0 0 6px rgba(255,255,255,.6),
+      0 0 12px rgba(186,12,47,.35),
+      0 0 18px rgba(0,122,134,.25);}
+    to{ text-shadow:
+      0 0 10px rgba(255,255,255,.95),
+      0 0 24px rgba(186,12,47,.6),
+      0 0 36px rgba(0,122,134,.45);}
+  }
+
+  /* Banner with IMAGE (full-width / fits screen) */
+  .banner{
+    background:#ffffff;
+    border-top:1px solid #e6ecec;
+    border-bottom:1px solid #e6ecec;
+    padding:0;
+  }
+  .banner .figure{
+    position:relative; margin:0; padding:0;
+    width:100%;
+    max-width:100%;
+  }
+  .banner .figure img{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+  .banner .caption{
+    text-align:center; font-size:.95rem; color:#445; padding:.6rem 1rem 1rem;
+  }
+
+  /* CSS marquee */
+  .marquee{
+    position:relative; overflow:hidden; background:#f6fbfc; border-top:1px solid #e6ecec;
+  }
+  .marquee .track{
+    display:inline-block; white-space:nowrap; will-change:transform;
+    padding:.7rem 0; animation:scroll 20s linear infinite;
+  }
+  @keyframes scroll{
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .marquee .track span{
+    display:inline-block;
+    margin-right:1rem;
+    padding:.35rem .75rem;
+    border-radius:999px;
+    background:#e9f5f6;
+    border:1px solid #cfe8ea;
+    color:#0f5f67;
+    font-weight:800;
+    letter-spacing:.01em;
+    text-shadow: 0 1px 0 rgba(255,255,255,.8);
+    box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  }
+  .marquee .track span::before{
+    content:"Reminder: ";
+    color:#ba0c2f;
+    font-weight:900;
+    margin-right:.35rem;
+  }
+
+  /* Accordion */
+  .accordion { padding:1rem }
+  .accordion .item{
+    background:#fff; border:1px solid #e9eff0; margin:.75rem 0; border-left:6px solid var(--hsc-turquoise);
+    border-radius:10px;
+  }
+  .accordion button{
+    width:100%; text-align:left; background:#fff; border:0; padding:1rem;
+    font-weight:800; font-size:1.05rem; cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+  }
+  .accordion button span.icon{
+    width:26px; height:26px; border-radius:50%; display:inline-grid; place-items:center;
+    background:var(--hsc-cherry); color:#fff; font-weight:900; font-size:1rem;
+  }
+  .accordion .panel{display:none; padding:1rem; border-top:1px dashed #dce6e7}
+  .accordion .panel ul{margin:.2rem 0; padding-left:1.1rem}
+  .accordion .panel li{margin:.35rem 0}
+  .tip{background:#eef8f9; border-left:6px solid var(--hsc-cherry); padding:.75rem; border-radius:8px; margin:.8rem 0}
+
+  /* Image rows inside accordion panels */
+  .imgrow{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:.6rem;
+    margin:.75rem 0 .25rem;
+  }
+  .imgcard{
+    background:#f7fbfc;
+    border:1px solid #e1eef0;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+  }
+  .imgcard img{
+    width:100%;
+    height:140px;
+    object-fit:cover;
+    display:block;
+  }
+  .imgcap{
+    padding:.45rem .6rem;
+    font-size:.9rem;
+    color:#274046;
+  }
+
+  /* Interactive — Scope of Work toggle */
+  .scope{
+    background:#fff; border-top:4px solid var(--hsc-cherry); border-bottom:1px solid #e7ecee;
+    padding:1rem;
+  }
+  .scope h2{ margin:.2rem 0 1rem; color:var(--hsc-turquoise) }
+  .toggle{
+    display:flex; gap:.5rem; flex-wrap:wrap; margin:.2rem 0 1rem;
+  }
+  .toggle button{
+    background:#eff7f8; border:1px solid #d7ecee; color:#144a51;
+    padding:.45rem .75rem; border-radius:9px; font-weight:800; cursor:pointer;
+  }
+  .toggle button.active{ background:var(--hsc-turquoise); color:#fff; border-color:transparent }
+  .scope .cols{
+    display:grid; grid-template-columns:1fr; gap:.75rem;
+  }
+  @media (min-width:900px){
+    .scope .cols{ grid-template-columns:1fr 1fr; }
+  }
+  .panelbox{
+    position:relative;
+    border:1px solid #e8eff1; border-radius:12px; padding:1rem; background:#fbfefe;
+    overflow:hidden;
+  }
+  .panelbox h3{ margin:.1rem 0 .5rem; color:#1f2326 }
+  .panelbox ul{ margin:.4rem 0 0; padding-left:1.1rem }
+  .panelbox li{ margin:.35rem 0 }
+
+  /* Big, bright, glowing clip art */
+  .clipart{
+    position:absolute;
+    top: -14px;
+    right: -14px;
+    width: var(--clip-size);
+    height: var(--clip-size);
+    opacity:.95;
+    pointer-events:none;
+    user-select:none;
+    transform-origin: 80% 20%;
+    animation: floatSway 6s ease-in-out infinite;
+  }
+  .clipart-billable{
+    filter:
+      drop-shadow(0 0 10px rgba(0,122,134,.65))
+      drop-shadow(0 0 22px rgba(0,122,134,.45))
+      drop-shadow(0 0 38px rgba(0,122,134,.35));
+    animation:
+      floatSway 6s ease-in-out infinite,
+      haloPulseTeal 2.4s ease-in-out infinite alternate;
+  }
+  .clipart-nonbillable{
+    filter:
+      drop-shadow(0 0 10px rgba(186,12,47,.65))
+      drop-shadow(0 0 22px rgba(186,12,47,.42))
+      drop-shadow(0 0 38px rgba(186,12,47,.32));
+    animation:
+      floatSway 6s ease-in-out infinite,
+      haloPulseCherry 2.4s ease-in-out infinite alternate;
+  }
+  @keyframes floatSway{
+    0%   { transform: translateY(0) rotate(0deg) scale(1); }
+    50%  { transform: translateY(4px) rotate(0.3deg) scale(1.02); }
+    100% { transform: translateY(0) rotate(0deg) scale(1); }
+  }
+  @keyframes haloPulseTeal{
+    from{ filter:
+      drop-shadow(0 0 8px rgba(0,122,134,.55))
+      drop-shadow(0 0 18px rgba(0,122,134,.38))
+      drop-shadow(0 0 28px rgba(0,122,134,.28)); }
+    to{ filter:
+      drop-shadow(0 0 14px rgba(0,122,134,.85))
+      drop-shadow(0 0 28px rgba(0,122,134,.58))
+      drop-shadow(0 0 46px rgba(0,122,134,.46)); }
+  }
+  @keyframes haloPulseCherry{
+    from{ filter:
+      drop-shadow(0 0 8px rgba(186,12,47,.55))
+      drop-shadow(0 0 18px rgba(186,12,47,.38))
+      drop-shadow(0 0 28px rgba(186,12,47,.28)); }
+    to{ filter:
+      drop-shadow(0 0 14px rgba(186,12,47,.9))
+      drop-shadow(0 0 28px rgba(186,12,47,.6))
+      drop-shadow(0 0 46px rgba(186,12,47,.5)); }
+  }
+
+  /* Steps checklist with progress */
+  .steps{
+    background:#fff; border-top:4px solid var(--hsc-cherry); border-bottom:1px solid #e7ecee;
+    padding:1rem 1rem 1.5rem;
+  }
+  .steps h2{margin:0 0 .65rem; color:var(--hsc-turquoise)}
+  .progress{
+    width:100%; height:12px; background:#ecf6f7; border-radius:999px; overflow:hidden; border:1px solid #d8ebed;
+    margin:.4rem 0 1rem;
+  }
+  .progress .bar{
+    height:100%; width:0%; background:linear-gradient(90deg, var(--hsc-turquoise), #22a6b3);
+  }
+  .checklist{display:grid; grid-template-columns:1fr; gap:.6rem}
+  .card{
+    border:1px solid #e8eff1; border-radius:12px; padding:1rem; background:#fbfefe;
+  }
+  .card label{display:flex; gap:.7rem; cursor:pointer; font-weight:700}
+  .card input[type="checkbox"]{transform:scale(1.2); margin-top:.15rem}
+  .card .detail{margin:.5rem 0 0 .1rem; color:#4c5053; font-weight:500}
+  .card .links a{display:inline-block; margin:.25rem .4rem .1rem 0; text-decoration:none; color:var(--hsc-cherry)}
+  .card .links a:hover{text-decoration:underline}
+
+  /* Tools row (bottom) */
+  .tools{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:.75rem;
+    padding:1rem;
+  }
+  .tool{
+    background:#fff; border:1px solid #e7ecef; border-radius:12px; padding:1rem;
+  }
+  .tool h3{margin:.2rem 0 .5rem; color:#222}
+  .tool .btn{margin-top:.4rem}
+
+  /* Footer */
+  footer{
+    background:#0a2a2f; color:#e3f3f4; padding:1.25rem;
+    border-top:6px solid var(--hsc-turquoise);
+  }
+
+  /* ---------- PRINT MODE RULES ---------- */
+  .print-mode .bar,
+  .print-mode .marquee,
+  .print-mode .figure { display: none !important; }
+  .print-mode .brand { border-bottom: 2px solid #ccc !important; }
+  .print-mode .scope, 
+  .print-mode .steps { border-top-color: #ccc !important; }
+  .print-mode body, .print-mode { color: #222; }
+
+  @media print {
+    .bar, .marquee, .figure { display: none !important; }
+    .brand { border-bottom: 2px solid #ccc !important; }
+    .scope, .steps { border-top-color: #ccc !important; }
+    body { color:#222; }
+  }
+</style>
+</head>
+
+<body>
+  <!-- UNM brand bar -->
+  <div class="brand">
+    <img class="logo" src="https://brand.unm.edu/logos/health-sciences-logo-horizontal.png" alt="UNM Health Sciences logo" />
+    <div class="brand-text">UNM Health Sciences — Community Health Worker (CHW/CHR) Guide</div>
+  </div>
+
+  <!-- Title just below brand bar -->
+  <div class="title-block">
+    <h1>CHW/CHR Guide: Certification & Medicaid Enrollment (New Mexico)</h1>
+    <p class="glowline">Step-by-step support to certify as a CHW/CHR and enroll with NM Medicaid.</p>
+  </div>
+
+  <!-- Quick actions (sticky) -->
+  <div class="bar" role="navigation" aria-label="quick actions">
+    <div></div>
+    <div class="right">
+      <a class="btn" href="https://www.nmhealth.org/about/phd/pchb/ochw/cert" target="_blank" rel="noopener">Apply for CHW Certification</a>
+      <a class="btn alt" href="https://nmmedicaid.portal.conduent.com/static/index.htm" target="_blank" rel="noopener">Medicaid Provider Portal</a>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <header class="hero" role="banner">
+    <div class="kicker">For Community Health Workers (CHWs) & Community Health Representatives (CHRs)</div>
+    <p>Use this interactive guide to complete certification, enroll as a Medicaid provider, and prepare to document and bill CHW/CHR services statewide.</p>
+  </header>
+
+  <!-- IMAGE banner (100% width) -->
+  <section class="banner" aria-label="overview and updates">
+    <figure class="figure">
+      <img src="https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=2000&auto=format&fit=crop" alt="Community health worker consulting with a patient" />
+      <figcaption class="caption">CHWs/CHRs connect New Mexicans to care — certification and enrollment help below.</figcaption>
+    </figure>
+
+    <!-- Marquee -->
+    <div class="marquee" role="region" aria-label="updates">
+      <div class="track">
+        <span>Verify Medicaid eligibility before each encounter.</span>
+        <span>Attach MAD-872 (Standing Order) to each claim’s date of service.</span>
+        <span>Use Provider Type 462 · Specialty 230 for CHW/CHR enrollment.</span>
+        <span>Document start/stop times, activities, and outcomes for every visit.</span>
+        <span>Confirm services fall under the statewide CHW Standing Order.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Accordion (Eligibility & Certification) -->
+  <section class="accordion" aria-label="Eligibility & Certification">
+    <div class="item">
+      <button type="button" aria-expanded="false">
+        <span>Eligibility (Certification)</span>
+        <span class="icon">+</span>
+      </button>
+      <div class="panel" role="region">
+        <ul>
+          <li>18+ years old</li>
+          <li>High school diploma or GED</li>
+          <li>Proof of CHW core competency skills through training or experience</li>
+          <li>Additional documentation (letters of reference, specialty training certificates) as applicable</li>
+        </ul>
+
+        <!-- Four images matching the four lines above -->
+        <div class="imgrow" aria-label="Eligibility visual examples">
+          <figure class="imgcard">
+            <img src="H:\kijkwijzer-18-logo-png_seeklogo-78465.png" alt="Adult individual representing 18+ requirement" />
+            <figcaption class="imgcap">18+ years old</figcaption>
+          </figure>
+          <figure class="imgcard">
+            <img src="https://images.unsplash.com/photo-1519452575417-564c1401ecc0?q=80&w=800&auto=format&fit=crop" alt="Diploma or GED certificate" />
+            <figcaption class="imgcap">High school diploma or GED</figcaption>
+          </figure>
+          <figure class="imgcard">
+            <img src="https://images.unsplash.com/photo-1517520287167-4bbf64a00d66?q=80&w=800&auto=format&fit=crop" alt="Training classroom demonstrating core competency skills" />
+            <figcaption class="imgcap">Proof of CHW core competency skills</figcaption>
+          </figure>
+          <figure class="imgcard">
+            <img src="H:\additionalimage.png" alt="Letters of reference and certificates" />
+            <figcaption class="imgcap">Additional documentation</figcaption>
+          </figure>
+        </div>
+
+        <div class="tip"><strong>Tip:</strong> Collect references and certificates now to speed up application review.</div>
+      </div>
+    </div>
+
+    <div class="item">
+      <button type="button" aria-expanded="false">
+        <span>Two-Path Certification Process</span>
+        <span class="icon">+</span>
+      </button>
+      <div class="panel" role="region">
+        <ul>
+          <li><strong>Grandfathering process</strong> for experienced CHWs meeting state criteria</li>
+          <li><strong>Formalized training</strong>: 100 hours of Core Competency instruction</li>
+        </ul>
+
+        <div class="imgrow" aria-label="Two certification paths visuals">
+          <figure class="imgcard">
+            <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=800&auto=format&fit=crop" alt="Experienced CHW mentoring others" />
+            <figcaption class="imgcap">Grandfathering: Experience-based</figcaption>
+          </figure>
+          <figure class="imgcard">
+            <img src="https://images.unsplash.com/photo-1513258496099-48168024aec0?q=80&w=800&auto=format&fit=crop" alt="Instructor-led curriculum" />
+            <figcaption class="imgcap">Formal Training: 100 hrs core</figcaption>
+          </figure>
+          <figure class="imgcard">
+            <img src="https://images.unsplash.com/photo-1517520287167-4bbf64a00d66?q=80&w=800&auto=format&fit=crop" alt="Classroom group learning" />
+            <figcaption class="imgcap">Competency development</figcaption>
+          </figure>
+        </div>
+
+        <p>Learn more &amp; apply: <a href="https://www.nmhealth.org/about/phd/pchb/ochw/cert" target="_blank" rel="noopener">NM DOH — CHW Certification</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive: Scope of Work (Billable vs. Non-billable) -->
+  <section class="scope" aria-label="Scope of Work">
+    <h2>Scope of Work — Billable vs. Non-billable Activities</h2>
+    <div class="toggle" role="tablist" aria-label="scope toggle">
+      <button id="btn-billable" class="active" role="tab" aria-selected="true" aria-controls="panel-billable">Billable</button>
+      <button id="btn-nonbillable" role="tab" aria-selected="false" aria-controls="panel-nonbillable">Non-billable</button>
+    </div>
+
+    <div class="cols">
+      <!-- BILLABLE -->
+      <div id="panel-billable" class="panelbox" role="tabpanel" aria-labelledby="btn-billable">
+        <img class="clipart clipart-billable" alt="" aria-hidden="true"
+             src='data:image/svg+xml;utf8,
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360">
+               <defs>
+                 <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                   <stop offset="0%" stop-color="%23007a86"/>
+                   <stop offset="100%" stop-color="%230c8a96"/>
+                 </linearGradient>
+               </defs>
+               <rect x="30" y="40" rx="28" ry="28" width="300" height="280" fill="url(%23g1)"/>
+               <rect x="100" y="10" rx="18" ry="18" width="160" height="48" fill="%23ffffff" opacity="0.95"/>
+               <rect x="60" y="80" rx="10" ry="10" width="240" height="200" fill="%23ffffff" opacity="0.95"/>
+               <path d="M110 190 l40 40 90 -90" fill="none" stroke="%23ffffff" stroke-opacity="0.75" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+               <path d="M110 190 l40 40 90 -90" fill="none" stroke="%23ba0c2f" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+             </svg>' />
+
+        <h3>Billable Examples</h3>
+        <ul>
+          <li>Health education and coaching aligned to member goals</li>
+          <li>Care coordination, referrals, and follow-ups</li>
+          <li>Social needs screening &amp; warm handoffs</li>
+          <li>Documentation of start/stop times, activities, outcomes</li>
+          <li>Services delivered under the statewide Standing Order (MAD-872)</li>
+        </ul>
+      </div>
+
+      <!-- NON-BILLABLE -->
+      <div id="panel-nonbillable" class="panelbox" role="tabpanel" aria-labelledby="btn-nonbillable" hidden>
+        <img class="clipart clipart-nonbillable" alt="" aria-hidden="true"
+             src='data:image/svg+xml;utf8,
+             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360">
+               <defs>
+                 <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+                   <stop offset="0%" stop-color="%23bfc0c2"/>
+                   <stop offset="100%" stop-color="%23e4e5e6"/>
+                 </linearGradient>
+               </defs>
+               <rect x="60" y="40" rx="22" ry="22" width="240" height="280" fill="url(%23g2)"/>
+               <rect x="90" y="90" width="180" height="18" rx="9" fill="%23ffffff" opacity="0.95"/>
+               <rect x="90" y="130" width="180" height="18" rx="9" fill="%23ffffff" opacity="0.95"/>
+               <rect x="90" y="170" width="120" height="18" rx="9" fill="%23ffffff" opacity="0.95"/>
+               <circle cx="180" cy="180" r="94" fill="%23ffffff" opacity="0.75"/>
+               <circle cx="180" cy="180" r="86" fill="none" stroke="%23ba0c2f" stroke-width="22"/>
+               <line x1="120" y1="240" x2="240" y2="120" stroke="%23ba0c2f" stroke-width="22" stroke-linecap="round"/>
+             </svg>' />
+
+        <h3>Non-billable Examples</h3>
+        <ul>
+          <li>General outreach not tied to a member’s encounter</li>
+          <li>Internal staff meetings or supervision time</li>
+          <li>Administrative tasks unrelated to member services</li>
+          <li>Travel without a related member encounter</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Steps: Enrollment checklist with progress -->
+  <section class="steps" aria-label="Enrollment steps">
+    <h2>Enrolling in Medicaid as a Provider — Interactive Checklist</h2>
+    <div class="progress" aria-label="completion progress">
+      <div class="bar" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <div class="checklist" id="checklist">
+      <div class="card">
+        <label>
+          <input type="checkbox" data-weight="1" />
+          <span>Step 1 — Become a certified CHW</span>
+        </label>
+        <div class="detail">Complete CHW certification through NM DOH OCHW.</div>
+        <div class="links">
+          <a href="https://www.nmhealth.org/about/phd/pchb/ochw/cert" target="_blank" rel="noopener">Certification portal</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <label>
+          <input type="checkbox" data-weight="1" />
+          <span>Step 2 — Obtain your NPI in NPPES</span>
+        </label>
+        <div class="detail">Every provider must have an active NPI.</div>
+        <div class="links">
+          <a href="https://nppes.cms.hhs.gov/NPPES/Welcome.do" target="_blank" rel="noopener">NPPES — Get/Manage NPI</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <label>
+          <input type="checkbox" data-weight="1" />
+          <span>Step 3 — Enroll with New Mexico Medicaid (PT 462 / Specialty 230)</span>
+        </label>
+        <div class="detail">Complete the online application and attach the correct PPA.</div>
+        <div class="links">
+          <a href="https://nmmedicaid.portal.conduent.com/static/index.htm" target="_blank" rel="noopener">NM Medicaid Provider Portal</a>
+          <a href="https://nmmedicaid.portal.conduent.com/static/PDFs/ProvEnrollPacket/MAD312.pdf" target="_blank" rel="noopener">MAD-312 (individual within group)</a>
+          <a href="https://nmmedicaid.portal.conduent.com/static/PDFs/ProvEnrollPacket/MAD335.pdf" target="_blank" rel="noopener">MAD-335 (group/org/direct pay)</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <label>
+          <input type="checkbox" data-weight="1" />
+          <span>Step 4 — Obtain DOH Attestation (OCHW)</span>
+        </label>
+        <div class="detail">Request an attestation that you/your group may bill Medicaid for CHW/CHR services.</div>
+      </div>
+
+      <div class="card">
+        <label>
+          <input type="checkbox" data-weight="1" />
+          <span>Step 5 — Verify member eligibility & document encounters</span>
+        </label>
+        <div class="detail">Check eligibility before services; record start/stop times, activities, and outcomes; coordinate with billing.</div>
+      </div>
+
+      <div class="card">
+        <label>
+          <input type="checkbox" data-weight="1" />
+          <span>Step 6 — Standing Order Form (each DOS)</span>
+        </label>
+        <div class="detail">Attach <a href="https://nmmedicaid.portal.conduent.com/static/PDFs/MAD872.pdf" target="_blank" rel="noopener">MAD-872</a> with the claim. Confirms services fall under the statewide CHW Standing Order.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tools (BOTTOM) -->
+  <section class="tools" aria-label="quick tools and downloads">
+    <div class="tool">
+      <h3>Download: Standing Order (MAD-872)</h3>
+      <p class="muted">Attach for each date of service to your claim submission.</p>
+      <a class="btn" href="https://nmmedicaid.portal.conduent.com/static/PDFs/MAD872.pdf" target="_blank" rel="noopener">Open MAD-872</a>
+    </div>
+    <div class="tool">
+      <h3>Check Eligibility</h3>
+      <p class="muted">Verify member eligibility in the Medicaid portal before each encounter.</p>
+      <a class="btn alt" href="https://nmmedicaid.portal.conduent.com/static/index.htm" target="_blank" rel="noopener">Provider Portal</a>
+    </div>
+    <div class="tool">
+      <h3>Print Mode</h3>
+      <p class="muted">Toggle a simplified style for printing or saving as PDF.</p>
+      <button class="btn" id="printToggle" type="button" aria-pressed="false" aria-label="Toggle print-friendly mode">
+        Toggle Print-Friendly
+      </button>
+    </div>
+  </section>
+
+  <footer role="contentinfo">
+    <strong>UNM Health Sciences</strong> · Full-width interactive guide for CHW/CHR certification & Medicaid enrollment.
+  </footer>
+
+<!-- ========== Scripts (place at end of body) ========== -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    /* Accordion */
+    document.querySelectorAll('.accordion .item button').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        const icon = btn.querySelector('.icon');
+        const panel = btn.parentElement.querySelector('.panel');
+        if(expanded){
+          panel.style.display = 'none';
+          icon.textContent = '+';
+        }else{
+          panel.style.display = 'block';
+          icon.textContent = '–';
+        }
+      });
+    });
+
+    /* Checklist progress */
+    const boxes = Array.from(document.querySelectorAll('.checklist input[type="checkbox"]'));
+    const bar = document.getElementById('progressBar');
+    function recalc(){
+      const total = boxes.reduce((s,b)=>s + (parseFloat(b.dataset.weight)||1), 0);
+      const done  = boxes.reduce((s,b)=>s + (b.checked ? (parseFloat(b.dataset.weight)||1) : 0), 0);
+      const pct = total ? Math.round((done/total)*100) : 0;
+      bar.style.width = pct + '%';
+      bar.title = pct + '% complete';
+    }
+    boxes.forEach(b=>b.addEventListener('change', recalc));
+    recalc();
+
+    /* Print-friendly toggle (bottom-only) */
+    const printBtn = document.getElementById('printToggle');
+    if (printBtn) {
+      let printMode = document.body.classList.contains('print-mode');
+      syncButton();
+
+      printBtn.addEventListener('click', () => {
+        printMode = !printMode;
+        document.body.classList.toggle('print-mode', printMode);
+        syncButton();
+      });
+
+      function syncButton() {
+        printBtn.setAttribute('aria-pressed', String(printMode));
+        printBtn.textContent = printMode ? 'Exit Print Mode' : 'Toggle Print-Friendly';
+        printBtn.style.transform = 'scale(0.98)';
+        setTimeout(() => (printBtn.style.transform = ''), 90);
+      }
+    }
+
+    /* Scope toggle */
+    const bBill = document.getElementById('btn-billable');
+    const bNon  = document.getElementById('btn-nonbillable');
+    const pBill = document.getElementById('panel-billable');
+    const pNon  = document.getElementById('panel-nonbillable');
+
+    function showBillable(){
+      bBill?.classList.add('active');
+      bNon?.classList.remove('active');
+      if (pBill) pBill.hidden = false;
+      if (pNon)  pNon.hidden  = true;
+      bBill?.setAttribute('aria-selected','true');
+      bNon?.setAttribute('aria-selected','false');
+    }
+    function showNonBillable(){
+      bNon?.classList.add('active');
+      bBill?.classList.remove('active');
+      if (pNon)  pNon.hidden  = false;
+      if (pBill) pBill.hidden = true;
+      bNon?.setAttribute('aria-selected','true');
+      bBill?.setAttribute('aria-selected','false');
+    }
+    bBill?.addEventListener('click', showBillable);
+    bNon?.addEventListener('click', showNonBillable);
+  });
+</script>
+</body>
+</html>
