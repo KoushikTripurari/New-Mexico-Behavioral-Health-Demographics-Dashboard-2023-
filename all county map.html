@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>US County Outline by FIPS + Custom Pins</title>
+
+<style>
+  :root{
+    --ink:#2f3134;
+    --fill:#63666A;   /* default fill */
+    --stroke:#4b4f55; /* default outline */
+    --bg:#f7f8fa;
+
+    --crisis:#ba0c2f;   /* Mobile Crisis Team (red circle) */
+    --ccbhs:#0c8a96;    /* CCBHC (blue-green square) */
+    --ctc:#f39c12;      /* CTC (gold star) */
+  }
+  body{
+    margin:0; font-family:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+    color:var(--ink); background:var(--bg);
+  }
+  header, footer{ padding:12px 16px; }
+  header h1{ margin:.25rem 0 .35rem; font-size:clamp(1.1rem, .9rem + 1.5vw, 1.6rem); }
+  header p{ margin:0; opacity:.85 }
+  .wrap{ max-width:1060px; margin:0 auto; padding:12px 16px 28px; }
+  .card{
+    background:#fff; border:1px solid #e6e8eb; border-radius:12px; padding:12px;
+    box-shadow:0 4px 14px rgba(0,0,0,.05);
+  }
+
+  .controls{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap:10px; margin:10px 0 16px;
+  }
+  .controls label{ font-size:.9rem; font-weight:700; display:block; margin-bottom:4px; }
+  .controls input[type="text"], .controls input[type="number"], .controls select{
+    width:100%; padding:.5rem .6rem; border:1px solid #dfe3e7; border-radius:8px; font-weight:600; background:#fff;
+  }
+  .controls input[type="color"]{
+    width:100%; height:42px; border:1px solid #dfe3e7; border-radius:8px; padding:0;
+  }
+  .controls .row-btns{
+    display:flex; gap:10px; align-items:end; justify-content:flex-start;
+  }
+  button,a.button{
+    appearance:none; border:0; border-radius:10px; background:#007a86; color:#fff; padding:.55rem .9rem; font-weight:800; text-decoration:none; display:inline-flex; gap:.45rem; align-items:center; cursor:pointer;
+  }
+  button:hover, a.button:hover{ filter:brightness(1.05); transform:translateY(-1px); box-shadow:0 8px 16px rgba(0,0,0,.12) }
+
+  .mapbox{
+    position:relative; width:100%; aspect-ratio: 4 / 3;
+    box-shadow:0 4px 20px rgba(0,0,0,.06) inset;
+    border-radius:10px; overflow:hidden; background:#fff;
+  }
+  svg{ width:100%; height:100%; display:block; }
+  .county{ fill:var(--fill); stroke:var(--stroke); stroke-width:1.6; vector-effect:non-scaling-stroke; }
+
+  /* County label */
+  .region-label{
+    font-size:14px; font-weight:900; fill:#1f2326;
+    paint-order:stroke; stroke:#ffffff; stroke-width:4px; stroke-linejoin:round;
+  }
+
+  .panel{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-top:10px; }
+  .coords{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+
+  /* Pin overlay (HTML positioned over SVG) */
+  .pins{ position:absolute; inset:0; pointer-events:none; }
+  .pin{
+    position:absolute; transform:translate(-50%, -100%);
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.28));
+    white-space:nowrap; font-size:12px; font-weight:700; color:#111;
+    pointer-events:auto;  /* allow tooltip hover */
+  }
+  .pin .sym{ width:18px; height:18px; display:inline-block; border:2px solid #111; background:#ccc; }
+  .pin .label{
+    position:absolute; left:10px; background:#fff; border:1px solid #e5e8ec; border-radius:6px; padding:2px 6px; box-shadow:0 2px 6px rgba(0,0,0,.07);
+  }
+  /* label above/below */
+  .pin.label-above .label{ top:-22px; }
+  .pin.label-below .label{ top:6px; }
+
+  /* Type-specific symbols */
+  /* Mobile Crisis Team = red circle */
+  .pin.crisis .sym{ background:var(--crisis); border-radius:50%; }
+  /* CCBHC = blue/teal square */
+  .pin.ccbhc .sym{ background:var(--ccbhs); }
+  /* CTC = gold star */
+  .pin.ctc .sym{
+    background:var(--ctc);
+    clip-path:polygon(50% 0%, 62% 35%, 100% 35%, 69% 57%, 80% 92%, 50% 72%, 20% 92%, 31% 57%, 0% 35%, 38% 35%);
+  }
+
+  /* Legend */
+  .legend{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin:14px 0 0; }
+  .legend .item{ display:flex; gap:8px; align-items:center; }
+  .legend .swatch{ width:16px; height:16px; border:2px solid #111; background:#ccc; display:inline-block; }
+  .legend .swatch.crisis{ background:var(--crisis); border-radius:50% }
+  .legend .swatch.ccbhc{ background:var(--ccbhs) }
+  .legend .swatch.ctc{
+    background:var(--ctc);
+    clip-path:polygon(50% 0%, 62% 35%, 100% 35%, 69% 57%, 80% 92%, 50% 72%, 20% 92%, 31% 57%, 0% 35%, 38% 35%);
+  }
+
+  /* Pins editor */
+  .pins-editor{
+    margin-top:18px; border-top:1px dashed #e2e6ea; padding-top:14px;
+  }
+  .pins-grid{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap:10px; margin-bottom:10px;
+  }
+  .pins-list{
+    width:100%; border-collapse: collapse; margin-top:8px; background:#fff; border:1px solid #e6e8eb; border-radius:10px; overflow:hidden;
+  }
+  .pins-list th, .pins-list td{ padding:.55rem .7rem; border-top:1px solid #eef1f4; text-align:left; vertical-align:top; font-size:.95rem; }
+  .pins-list th{ background:#fafbfc; font-weight:800 }
+  .pins-list tr:first-child td{ border-top:0 }
+  .actions button{ background:#ba0c2f; }
+  .actions button:hover{ filter:brightness(1.05) }
+  footer{ font-size:.9rem; opacity:.8; margin-top:16px; }
+</style>
+</head>
+<body>
+  <header class="wrap">
+    <h1>US County Outline by FIPS — Customizable + Pins</h1>
+    <p>Enter a <strong>FIPS</strong> (e.g., <strong>35001</strong> Bernalillo, <strong>35013</strong> Doña Ana), set colors/label, then add locations with the requested symbols. (Placement uses lat/lon; address is stored for reference.)</p>
+  </header>
+
+  <main class="wrap card">
+    <!-- Controls -->
+    <div class="controls">
+      <div>
+        <label for="fips">FIPS Code (5 digits)</label>
+        <input id="fips" type="text" inputmode="numeric" placeholder="e.g., 35001" value="35001" maxlength="5" />
+      </div>
+      <div>
+        <label for="labelText">Label Text</label>
+        <input id="labelText" type="text" placeholder="e.g., Behavioral Region 2 (Bernalillo)" value="Behavioral Region 2 (Bernalillo)" />
+      </div>
+      <div>
+        <label for="fillColor">Fill Color</label>
+        <input id="fillColor" type="color" value="#63666A" />
+      </div>
+      <div>
+        <label for="strokeColor">Stroke Color</label>
+        <input id="strokeColor" type="color" value="#4b4f55" />
+      </div>
+      <div>
+        <label for="labelPos">Label Position</label>
+        <select id="labelPos">
+          <option value="left">Left Edge (vertical center)</option>
+          <option value="centroid">At Centroid</option>
+        </select>
+      </div>
+      <div class="row-btns">
+        <button id="renderBtn" type="button">Render County</button>
+        <button id="downloadBtn" type="button" title="Download the current SVG">Download SVG</button>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map" class="mapbox" aria-label="County outline map">
+      <div id="pinLayer" class="pins" aria-hidden="false"></div>
+    </div>
+
+    <div class="panel">
+      <div class="coords" id="coords">Centroid: …</div>
+      <div class="coords" id="meta">FIPS: 35001</div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend" aria-label="Legend">
+      <div class="item"><span class="swatch crisis"></span> Mobile Crisis Team</div>
+      <div class="item"><span class="swatch ccbhc"></span> CCBHC</div>
+      <div class="item"><span class="swatch ctc"></span> Crisis Triage Center</div>
+    </div>
+
+    <!-- Pins editor -->
+    <div class="pins-editor">
+      <h3>Add Locations</h3>
+      <div class="pins-grid">
+        <div>
+          <label for="pinName">Name</label>
+          <input id="pinName" type="text" placeholder="e.g., Crisis Triage Center" />
+        </div>
+        <div>
+          <label for="pinType">Type</label>
+          <select id="pinType">
+            <option value="crisis">Mobile Crisis Team (red circle)</option>
+            <option value="ccbhc">CCBHC (blue square)</option>
+            <option value="ctc">Crisis Triage Center (gold star)</option>
+          </select>
+        </div>
+        <div>
+          <label for="pinLat">Latitude (WGS84)</label>
+          <input id="pinLat" type="number" step="0.000001" placeholder="e.g., 35.084385" />
+        </div>
+        <div>
+          <label for="pinLon">Longitude (WGS84)</label>
+          <input id="pinLon" type="number" step="0.000001" placeholder="-106.650422" />
+        </div>
+        <div>
+          <label for="pinAddress">Address (optional)</label>
+          <input id="pinAddress" type="text" placeholder="1210 San Mateo SE, Albuquerque, NM 87108" />
+        </div>
+        <div>
+          <label for="pinLabelPos">Label Position</label>
+          <select id="pinLabelPos">
+            <option value="auto">Auto (CTC below, others above)</option>
+            <option value="above">Above</option>
+            <option value="below">Below</option>
+          </select>
+        </div>
+        <div class="row-btns">
+          <button id="addPinBtn" type="button">Add Pin</button>
+          <button id="clearPinsBtn" type="button" style="background:#4b4f55">Clear All Pins</button>
+        </div>
+      </div>
+
+      <table class="pins-list" id="pinsTable" aria-label="Locations table">
+        <thead>
+          <tr>
+            <th>Name</th><th>Type</th><th>Lat</th><th>Lon</th><th>Address</th><th>Label</th><th class="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pinsTbody">
+          <!-- Filled dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer class="wrap">
+    Data: <a href="https://github.com/topojson/us-atlas" target="_blank" rel="noopener">us-atlas counties-10m</a>. Rendering: D3 + TopoJSON client. Pins are placed with lat/lon you provide (no live geocoding).
+  </footer>
+
+  <!-- Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+
+  <script>
+  let topoCache = null;
+  let svg = null, path = null, projection = null;
+  let currentFips = "35001";
+
+  // Simple in-memory pins store
+  const pins = []; // {name, type, lat, lon, address, labelPos}
+
+  async function loadTopo(){
+    if (topoCache) return topoCache;
+    topoCache = await fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json").then(r => r.json());
+    return topoCache;
+  }
+
+  function clearMap(){
+    document.getElementById("map").querySelector("svg")?.remove();
+  }
+
+  function updateColors(fill, stroke){
+    document.documentElement.style.setProperty("--fill", fill);
+    document.documentElement.style.setProperty("--stroke", stroke);
+  }
+
+  async function renderCountyByFIPS(fips, labelText, labelPos){
+    const topo = await loadTopo();
+    const counties = topojson.feature(topo, topo.objects.counties);
+    const county = counties.features.find(f => f.id === fips);
+    clearMap();
+
+    const box = document.getElementById("map");
+    const W = box.clientWidth;
+    const H = box.clientHeight;
+
+    svg = d3.select("#map").append("svg")
+      .attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("role","img")
+      .attr("aria-label","US county outline");
+
+    if(!county){
+      svg.append("text")
+        .attr("x", W/2).attr("y", H/2).attr("text-anchor","middle")
+        .attr("fill", "#ba0c2f").attr("font-weight", 800).text(`FIPS ${fips} not found`);
+      document.getElementById("coords").textContent = "Centroid: —";
+      document.getElementById("meta").textContent = `FIPS: ${fips}`;
+      return;
+    }
+
+    projection = d3.geoAlbersUsa();
+    projection.fitSize([W, H], county);
+    path = d3.geoPath(projection);
+
+    svg.append("path")
+      .attr("class","county")
+      .attr("d", path(county));
+
+    // Label
+    if (labelPos === "centroid") {
+      const [cx, cy] = path.centroid(county);
+      svg.append("text")
+        .attr("class","region-label")
+        .attr("x", cx).attr("y", cy).attr("text-anchor","middle").attr("dy",".35em")
+        .text(labelText || `FIPS ${fips}`);
+    } else {
+      const cy = path.centroid(county)[1];
+      const edgeX = 16;
+      svg.append("text")
+        .attr("class","region-label")
+        .attr("x", edgeX).attr("y", cy).attr("text-anchor","start").attr("dy",".35em")
+        .text(labelText || `FIPS ${fips}`);
+    }
+
+    const [lon, lat] = d3.geoCentroid(county);
+    document.getElementById("coords").textContent = `Centroid: ${lat.toFixed(6)}, ${lon.toFixed(6)}  (WGS84)`;
+    document.getElementById("meta").textContent = `FIPS: ${fips}`;
+
+    // Re-draw pins using fresh projection
+    renderPins();
+  }
+
+  function renderPins(){
+    const layer = document.getElementById("pinLayer");
+    layer.innerHTML = ""; // clear
+    if (!projection) return;
+
+    pins.forEach((p, idx) => {
+      const xy = projection([p.lon, p.lat]);
+      if (!xy) return; // outside projection bounds
+      const [x, y] = xy;
+
+      const pinDiv = document.createElement("div");
+      pinDiv.className = `pin ${p.type} ${resolveLabelPosClass(p)}`;
+      pinDiv.style.left = x + "px";
+      pinDiv.style.top  = y + "px";
+      pinDiv.title = p.address ? `${p.name}\n${p.address}` : p.name;
+
+      const sym = document.createElement("span");
+      sym.className = "sym";
+
+      const label = document.createElement("span");
+      label.className = "label";
+      label.textContent = p.name;
+
+      pinDiv.appendChild(sym);
+      pinDiv.appendChild(label);
+      layer.appendChild(pinDiv);
+    });
+  }
+
+  function resolveLabelPosClass(pin){
+    // Auto rule: CTC label below; others above
+    if (pin.labelPos === "above") return "label-above";
+    if (pin.labelPos === "below") return "label-below";
+    if (pin.type === "ctc") return "label-below";
+    return "label-above";
+  }
+
+  function addPinFromForm(){
+    const name = document.getElementById("pinName").value.trim();
+    const type = document.getElementById("pinType").value;
+    const lat  = parseFloat(document.getElementById("pinLat").value);
+    const lon  = parseFloat(document.getElementById("pinLon").value);
+    const addr = document.getElementById("pinAddress").value.trim();
+    const labelPos = document.getElementById("pinLabelPos").value;
+
+    if (!name || !type || isNaN(lat) || isNaN(lon)){
+      alert("Please provide Name, Type, Latitude and Longitude.");
+      return;
+    }
+
+    pins.push({ name, type, lat, lon, address: addr, labelPos });
+    renderPins();
+    refreshPinsTable();
+    // Clear minimal fields for quick entry
+    document.getElementById("pinName").value = "";
+    document.getElementById("pinAddress").value = "";
+  }
+
+  function deletePin(index){
+    pins.splice(index, 1);
+    renderPins();
+    refreshPinsTable();
+  }
+
+  function refreshPinsTable(){
+    const tbody = document.getElementById("pinsTbody");
+    tbody.innerHTML = "";
+    pins.forEach((p, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${escapeHTML(p.name)}</td>
+        <td>${typeLabel(p.type)}</td>
+        <td>${p.lat.toFixed(6)}</td>
+        <td>${p.lon.toFixed(6)}</td>
+        <td>${escapeHTML(p.address || "")}</td>
+        <td>${labelPosText(p.labelPos)}</td>
+        <td class="actions"><button type="button" onclick="deletePin(${i})">Delete</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function typeLabel(t){
+    if (t === "crisis") return "Mobile Crisis Team";
+    if (t === "ccbhc")  return "CCBHC";
+    if (t === "ctc")    return "Crisis Triage Center";
+    return t;
+  }
+  function labelPosText(v){
+    if (v === "above") return "Above";
+    if (v === "below") return "Below";
+    return "Auto";
+  }
+  function escapeHTML(s){
+    return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
+
+  function downloadSVG(filename){
+    if (!svg) return;
+    const serializer = new XMLSerializer();
+    const raw = serializer.serializeToString(svg.node());
+    const file = new Blob([raw], {type:"image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || "county_outline.svg";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  // UI wiring
+  document.getElementById("renderBtn").addEventListener("click", () => {
+    const fips = document.getElementById("fips").value.trim();
+    const labelText = document.getElementById("labelText").value.trim();
+    const fill = document.getElementById("fillColor").value;
+    const stroke = document.getElementById("strokeColor").value;
+    const labelPos = document.getElementById("labelPos").value;
+
+    if (!/^\d{5}$/.test(fips)) {
+      alert("Please enter a 5-digit FIPS code (e.g., 35001).");
+      return;
+    }
+    currentFips = fips;
+    updateColors(fill, stroke);
+
+    // keep settings in URL for sharing
+    const params = new URLSearchParams(location.search);
+    params.set("fips", fips);
+    params.set("label", labelText);
+    params.set("fill", fill);
+    params.set("stroke", stroke);
+    params.set("pos", labelPos);
+    history.replaceState({}, "", `${location.pathname}?${params.toString()}`);
+
+    renderCountyByFIPS(fips, labelText, labelPos);
+  });
+
+  document.getElementById("downloadBtn").addEventListener("click", () => {
+    downloadSVG(`county_${currentFips}.svg`);
+  });
+
+  document.getElementById("addPinBtn").addEventListener("click", addPinFromForm);
+  document.getElementById("clearPinsBtn").addEventListener("click", () => {
+    if (confirm("Remove all pins?")) {
+      pins.length = 0;
+      renderPins();
+      refreshPinsTable();
+    }
+  });
+
+  // Init from URL params, then render
+  (function initFromQuery(){
+    const params = new URLSearchParams(location.search);
+    const fips = params.get("fips") || "35001";
+    const label = params.get("label") || "Behavioral Region 2 (Bernalillo)";
+    const fill = params.get("fill") || "#63666A";
+    const stroke = params.get("stroke") || "#4b4f55";
+    const pos = params.get("pos") || "left";
+
+    currentFips = fips;
+    document.getElementById("fips").value = fips;
+    document.getElementById("labelText").value = label;
+    document.getElementById("fillColor").value = fill;
+    document.getElementById("strokeColor").value = stroke;
+    document.getElementById("labelPos").value = pos;
+
+    updateColors(fill, stroke);
+    renderCountyByFIPS(fips, label, pos);
+  })();
+  </script>
+</body>
+</html>
