@@ -8,64 +8,39 @@
 <style>
   :root{
     --ink:#2f3134;
-    --fill:#63666A;   /* default fill */
-    --stroke:#4b4f55; /* default outline */
+    --fill:#63666A;
+    --stroke:#4b4f55;
     --bg:#f7f8fa;
 
     --crisis:#ba0c2f;   /* Mobile Crisis Team (red circle) */
     --ccbhs:#0c8a96;    /* CCBHC (blue/teal square) */
     --ctc:#f39c12;      /* CTC (gold star) */
   }
-  body{
-    margin:0; font-family:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
-    color:var(--ink); background:var(--bg);
-  }
+  body{ margin:0; font-family:ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif; color:var(--ink); background:var(--bg); }
   header, footer{ padding:12px 16px; }
   header h1{ margin:.25rem 0 .35rem; font-size:clamp(1.1rem, .9rem + 1.5vw, 1.6rem); }
   header p{ margin:0; opacity:.85 }
   .wrap{ max-width:1060px; margin:0 auto; padding:12px 16px 28px; }
-  .card{
-    background:#fff; border:1px solid #e6e8eb; border-radius:12px; padding:12px;
-    box-shadow:0 4px 14px rgba(0,0,0,.05);
-  }
+  .card{ background:#fff; border:1px solid #e6e8eb; border-radius:12px; padding:12px; box-shadow:0 4px 14px rgba(0,0,0,.05); }
 
-  .grid{
-    display:grid; gap:12px;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    margin:10px 0 16px;
-  }
+  .grid{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin:10px 0 16px; }
   .controls label, .colors label, .pins-editor label, .checker label{ font-size:.9rem; font-weight:700; display:block; margin-bottom:4px; }
-  .controls input[type="text"], .controls select,
-  .colors input[type="text"],
-  .pins-editor input, .pins-editor select,
-  .checker input{
-    width:100%; padding:.5rem .6rem; border:1px solid #dfe3e7; border-radius:8px; font-weight:600; background:#fff;
-  }
+  input[type="text"], input[type="number"], select{ width:100%; padding:.5rem .6rem; border:1px solid #dfe3e7; border-radius:8px; font-weight:600; background:#fff; }
   .row-btns{ display:flex; gap:10px; align-items:end; }
-  button,a.button{
-    appearance:none; border:0; border-radius:10px; background:#007a86; color:#fff; padding:.55rem .9rem; font-weight:800; text-decoration:none; display:inline-flex; gap:.45rem; align-items:center; cursor:pointer;
-  }
+  button,a.button{ appearance:none; border:0; border-radius:10px; background:#007a86; color:#fff; padding:.55rem .9rem; font-weight:800; text-decoration:none; display:inline-flex; gap:.45rem; align-items:center; cursor:pointer; }
   button:hover, a.button:hover{ filter:brightness(1.05); transform:translateY(-1px); box-shadow:0 8px 16px rgba(0,0,0,.12) }
   .btn-secondary{ background:#4b4f55; }
-  .btn-warn{ background:#ba0c2f; }
 
-  .mapbox{
-    position:relative; width:100%; aspect-ratio: 4 / 3;
-    box-shadow:0 4px 20px rgba(0,0,0,.06) inset;
-    border-radius:10px; overflow:hidden; background:#fff;
-  }
+  .mapbox{ position:relative; width:100%; aspect-ratio: 4 / 3; box-shadow:0 4px 20px rgba(0,0,0,.06) inset; border-radius:10px; overflow:hidden; background:#fff; }
   svg{ width:100%; height:100%; display:block; }
   .county{ fill:var(--fill); stroke:var(--stroke); stroke-width:1.6; vector-effect:non-scaling-stroke; }
-
-  .region-label{
-    font-size:14px; font-weight:900; fill:#1f2326;
-    paint-order:stroke; stroke:#ffffff; stroke-width:4px; stroke-linejoin:round;
-  }
+  .region-label{ font-size:14px; font-weight:900; fill:#1f2326; paint-order:stroke; stroke:#ffffff; stroke-width:4px; stroke-linejoin:round; }
 
   .panel{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-top:10px; }
   .coords{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
 
-  .legend{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin:14px 0 0; }
+  /* Legend */
+  .legend{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin:14px 0 8px; }
   .legend .item{ display:flex; gap:8px; align-items:center; }
   .legend .swatch{ width:16px; height:16px; border:2px solid #111; background:#ccc; display:inline-block; }
   .legend .swatch.crisis{ background:var(--crisis); border-radius:50% }
@@ -75,13 +50,9 @@
     clip-path:polygon(50% 0%, 62% 35%, 100% 35%, 69% 57%, 80% 92%, 50% 72%, 20% 92%, 31% 57%, 0% 35%, 38% 35%);
   }
 
+  /* Pins (map symbols + labels) */
   .pins{ position:absolute; inset:0; pointer-events:none; }
-  .pin{
-    position:absolute; transform:translate(-50%, -100%);
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.28));
-    white-space:nowrap; font-size:12px; font-weight:700; color:#111;
-    pointer-events:auto;
-  }
+  .pin{ position:absolute; transform:translate(-50%, -100%); filter: drop-shadow(0 2px 4px rgba(0,0,0,.28)); white-space:nowrap; font-size:12px; font-weight:700; color:#111; pointer-events:auto; }
   .pin .sym{ width:18px; height:18px; display:inline-block; border:2px solid #111; background:#ccc; }
   .pin .label{ position:absolute; left:10px; background:#fff; border:1px solid #e5e8ec; border-radius:6px; padding:2px 6px; box-shadow:0 2px 6px rgba(0,0,0,.07); }
   .pin.label-above .label{ top:-22px; }
@@ -94,16 +65,12 @@
   }
 
   .pins-editor{ margin-top:18px; border-top:1px dashed #e2e6ea; padding-top:14px; }
-  .pins-grid{ display:grid; gap:10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:10px; }
-  .pins-grid .wide{ grid-column: 1 / -1; }
 
-  table.pins-list{ width:100%; border-collapse: collapse; margin-top:8px; background:#fff; border:1px solid #e6e8eb; border-radius:10px; overflow:hidden; }
-  .pins-list th, .pins-list td{ padding:.55rem .7rem; border-top:1px solid #eef1f4; text-align:left; vertical-align:top; font-size:.95rem; }
-  .pins-list th{ background:#fafbfc; font-weight:800 }
-  .pins-list tr:first-child td{ border-top:0 }
-  .namecell{ display:flex; justify-content:space-between; gap:8px; align-items:center; }
-  .delbtn{ background:#ba0c2f; color:#fff; border:0; border-radius:6px; padding:.15rem .4rem; font-weight:800; cursor:pointer; }
-  .delbtn:hover{ filter:brightness(1.05) }
+  /* FINAL TABLE: solid black border, no delete buttons */
+  table.pins-list{ width:100%; border-collapse: collapse; margin-top:8px; background:#fff; border:3px solid #000; border-radius:8px; overflow:hidden; }
+  .pins-list th, .pins-list td{ padding:.6rem .75rem; border-top:1px solid #000; text-align:left; vertical-align:top; font-size:.95rem; }
+  .pins-list th{ background:#fafbfc; font-weight:800; border-top:0; }
+  .pins-list tr:first-child td{ border-top:0; }
 
   .checker{ margin-top:22px; border-top:2px solid #eef1f4; padding-top:14px; }
   .checker .grid{ grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
@@ -179,18 +146,11 @@
       <div class="coords" id="meta">FIPS: 35001</div>
     </div>
 
-    <!-- Legend -->
-    <div class="legend" aria-label="Legend">
-      <div class="item"><span class="swatch crisis"></span> Mobile Crisis Team</div>
-      <div class="item"><span class="swatch ccbhc"></span> CCBHC</div>
-      <div class="item"><span class="swatch ctc"></span> Crisis Triage Center</div>
-    </div>
-
     <!-- Pins editor -->
     <div class="pins-editor">
       <h3>Add Locations</h3>
-      <div class="pins-grid">
-        <div class="wide">
+      <div class="grid">
+        <div style="grid-column:1/-1;">
           <label for="pinAddress">Address (we’ll geocode this)</label>
           <input id="pinAddress" type="text" placeholder="1210 San Mateo SE, Albuquerque, NM 87108" />
           <small class="muted">Tip: Include city, state, ZIP for best accuracy.</small>
@@ -215,7 +175,6 @@
           <label for="pinZip">Zip Code</label>
           <input id="pinZip" type="text" placeholder="e.g., 87106" />
         </div>
-
         <div>
           <label for="pinLat">Latitude (auto-filled)</label>
           <input id="pinLat" type="number" step="0.000001" placeholder="e.g., 35.084385" />
@@ -224,7 +183,6 @@
           <label for="pinLon">Longitude (auto-filled)</label>
           <input id="pinLon" type="number" step="0.000001" placeholder="-106.650422" />
         </div>
-
         <div>
           <label for="pinLabelPos">Label Position</label>
           <select id="pinLabelPos">
@@ -233,7 +191,6 @@
             <option value="below">Below</option>
           </select>
         </div>
-
         <div class="row-btns">
           <button id="geocodeBtn" type="button" class="btn-secondary">Geocode Address</button>
           <button id="addPinBtn" type="button">Add Pin</button>
@@ -241,16 +198,21 @@
         </div>
       </div>
 
-      <!-- Display table: Name, County, Address, Zip Code, Type -->
+      <!-- Legend moved ABOVE the final table -->
+      <div class="legend" aria-label="Legend">
+        <div class="item"><span class="swatch crisis"></span> Mobile Crisis Team</div>
+        <div class="item"><span class="swatch ccbhc"></span> CCBHC</div>
+        <div class="item"><span class="swatch ctc"></span> Crisis Triage Center</div>
+      </div>
+
+      <!-- FINAL table (black border, no delete icons) -->
       <table class="pins-list" id="pinsTable" aria-label="Locations table">
         <thead>
           <tr>
             <th>Name</th><th>County</th><th>Address</th><th>Zip Code</th><th>Type</th>
           </tr>
         </thead>
-        <tbody id="pinsTbody">
-          <!-- rows injected -->
-        </tbody>
+        <tbody id="pinsTbody"></tbody>
       </table>
     </div>
 
@@ -265,7 +227,6 @@
         <div class="row-btns">
           <button id="chkGeocodeBtn" type="button">Get Lat/Lon</button>
         </div>
-
         <div>
           <label for="chkLat">Reverse: Latitude</label>
           <input id="chkLat" type="number" step="0.000001" placeholder="e.g., 35.0844" />
@@ -292,14 +253,9 @@
   <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 
   <script>
-  // ====== CONFIG: update with your contact email (per Nominatim policy) ======
   const NOMINATIM_EMAIL = "YOUR_EMAIL@EXAMPLE.COM";
-
-  let topoCache = null;
-  let svg = null, path = null, projection = null;
+  let topoCache = null, svg = null, path = null, projection = null;
   let currentFips = "35001";
-
-  // Pins store: {name, type, county, address, zip, lat, lon, labelPos}
   const pins = [];
 
   async function loadTopo(){
@@ -308,28 +264,22 @@
     return topoCache;
   }
 
-  function clearMap(){
-    document.getElementById("map").querySelector("svg")?.remove();
-  }
+  function clearMap(){ document.getElementById("map").querySelector("svg")?.remove(); }
 
   function applyHexVar(cssVar, value){
     const hex = (value || "").trim();
-    if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
-      document.documentElement.style.setProperty(cssVar, hex);
-      return true;
-    }
+    if (/^#[0-9a-fA-F]{6}$/.test(hex)) { document.documentElement.style.setProperty(cssVar, hex); return true; }
     return false;
   }
-
   function applyAllColorsFromInputs(){
-    const ok1 = applyHexVar("--fill",   document.getElementById("hexFill").value);
-    const ok2 = applyHexVar("--stroke", document.getElementById("hexStroke").value);
-    const ok3 = applyHexVar("--crisis", document.getElementById("hexCrisis").value);
-    const ok4 = applyHexVar("--ccbhs",  document.getElementById("hexCCBHC").value);
-    const ok5 = applyHexVar("--ctc",    document.getElementById("hexCTC").value);
-    if (!(ok1 && ok2 && ok3 && ok4 && ok5)){
-      alert("Please use valid 6-digit hex colors like #1E5D30.");
-    }
+    const ok = [
+      applyHexVar("--fill",   document.getElementById("hexFill").value),
+      applyHexVar("--stroke", document.getElementById("hexStroke").value),
+      applyHexVar("--crisis", document.getElementById("hexCrisis").value),
+      applyHexVar("--ccbhs",  document.getElementById("hexCCBHC").value),
+      applyHexVar("--ctc",    document.getElementById("hexCTC").value),
+    ].every(Boolean);
+    if (!ok) alert("Please use valid 6-digit hex colors like #1E5D30.");
   }
 
   async function renderCountyByFIPS(fips, labelText, labelPos){
@@ -339,8 +289,7 @@
     clearMap();
 
     const box = document.getElementById("map");
-    const W = box.clientWidth;
-    const H = box.clientHeight;
+    const W = box.clientWidth, H = box.clientHeight;
 
     svg = d3.select("#map").append("svg")
       .attr("viewBox", `0 0 ${W} ${H}`)
@@ -348,51 +297,35 @@
       .attr("aria-label","US county outline");
 
     if(!county){
-      svg.append("text")
-        .attr("x", W/2).attr("y", H/2).attr("text-anchor","middle")
-        .attr("fill", "#ba0c2f").attr("font-weight", 800).text(`FIPS ${fips} not found`);
+      svg.append("text").attr("x", W/2).attr("y", H/2).attr("text-anchor","middle").attr("fill", "#ba0c2f").attr("font-weight", 800).text(`FIPS ${fips} not found`);
       document.getElementById("coords").textContent = "Centroid: —";
       document.getElementById("meta").textContent = `FIPS: ${fips}`;
       return;
     }
 
-    projection = d3.geoAlbersUsa();
-    projection.fitSize([W, H], county);
+    projection = d3.geoAlbersUsa(); projection.fitSize([W, H], county);
     path = d3.geoPath(projection);
 
-    svg.append("path")
-      .attr("class","county")
-      .attr("d", path(county));
+    svg.append("path").attr("class","county").attr("d", path(county));
 
-    // Label
     if (labelPos === "centroid") {
       const [cx, cy] = path.centroid(county);
-      svg.append("text")
-        .attr("class","region-label")
-        .attr("x", cx).attr("y", cy).attr("text-anchor","middle").attr("dy",".35em")
-        .text(labelText || `FIPS ${fips}`);
+      svg.append("text").attr("class","region-label").attr("x", cx).attr("y", cy).attr("text-anchor","middle").attr("dy",".35em").text(labelText || `FIPS ${fips}`);
     } else {
       const cy = path.centroid(county)[1];
-      const edgeX = 16;
-      svg.append("text")
-        .attr("class","region-label")
-        .attr("x", edgeX).attr("y", cy).attr("text-anchor","start").attr("dy",".35em")
-        .text(labelText || `FIPS ${fips}`);
+      svg.append("text").attr("class","region-label").attr("x", 16).attr("y", cy).attr("text-anchor","start").attr("dy",".35em").text(labelText || `FIPS ${fips}`);
     }
 
     const [lon, lat] = d3.geoCentroid(county);
     document.getElementById("coords").textContent = `Centroid: ${lat.toFixed(6)}, ${lon.toFixed(6)}  (WGS84)`;
     document.getElementById("meta").textContent = `FIPS: ${fips}`;
-
-    // Re-draw pins with new projection
     renderPins();
   }
 
   function resolveLabelPosClass(pin){
     if (pin.labelPos === "above") return "label-above";
     if (pin.labelPos === "below") return "label-below";
-    if (pin.type === "ctc") return "label-below"; // default: CTC below
-    return "label-above";
+    return pin.type === "ctc" ? "label-below" : "label-above";
   }
 
   function renderPins(){
@@ -401,67 +334,35 @@
     if (!projection) return;
 
     pins.forEach((p) => {
-      const xy = projection([p.lon, p.lat]);
-      if (!xy) return;
+      const xy = projection([p.lon, p.lat]); if (!xy) return;
       const [x, y] = xy;
-
       const div = document.createElement("div");
       div.className = `pin ${p.type} ${resolveLabelPosClass(p)}`;
-      div.style.left = x + "px";
-      div.style.top  = y + "px";
+      div.style.left = x + "px"; div.style.top  = y + "px";
       div.title = p.address ? `${p.name}\n${p.address}` : p.name;
 
-      const sym = document.createElement("span");
-      sym.className = "sym";
+      const sym = document.createElement("span"); sym.className = "sym";
+      const label = document.createElement("span"); label.className = "label"; label.textContent = p.name;
 
-      const label = document.createElement("span");
-      label.className = "label";
-      label.textContent = p.name;
-
-      div.appendChild(sym);
-      div.appendChild(label);
-      layer.appendChild(div);
+      div.appendChild(sym); div.appendChild(label); layer.appendChild(div);
     });
   }
 
-  function typeLabel(t){
-    if (t === "crisis") return "Mobile Crisis Team";
-    if (t === "ccbhc")  return "CCBHC";
-    if (t === "ctc")    return "Crisis Triage Center";
-    return t;
-  }
+  function typeLabel(t){ return t==="crisis"?"Mobile Crisis Team":t==="ccbhc"?"CCBHC":t==="ctc"?"Crisis Triage Center":t; }
 
   function refreshPinsTable(){
     const tbody = document.getElementById("pinsTbody");
     tbody.innerHTML = "";
-    pins.forEach((p, i) => {
+    pins.forEach((p) => {
       const tr = document.createElement("tr");
-
-      const nameCell = document.createElement("td");
-      nameCell.className = "namecell";
-      const nameText = document.createElement("span");
-      nameText.textContent = p.name;
-      const del = document.createElement("button");
-      del.className = "delbtn";
-      del.title = "Remove pin";
-      del.textContent = "✖";
-      del.addEventListener("click", () => { pins.splice(i,1); renderPins(); refreshPinsTable(); });
-      nameCell.appendChild(nameText);
-      nameCell.appendChild(del);
-
-      tr.appendChild(nameCell);
-      tr.appendChild(cell(p.county));
-      tr.appendChild(cell(p.address));
-      tr.appendChild(cell(p.zip));
+      tr.appendChild(cell(p.name));
+      tr.appendChild(cell(p.county || ""));
+      tr.appendChild(cell(p.address || ""));
+      tr.appendChild(cell(p.zip || ""));
       tr.appendChild(cell(typeLabel(p.type)));
       tbody.appendChild(tr);
     });
-
-    function cell(txt){
-      const td = document.createElement("td");
-      td.textContent = txt || "";
-      return td;
-    }
+    function cell(txt){ const td = document.createElement("td"); td.textContent = txt || ""; return td; }
   }
 
   function addPinFromForm(){
@@ -475,17 +376,11 @@
     const labelPos = document.getElementById("pinLabelPos").value;
 
     if (!name || !type || isNaN(lat) || isNaN(lon)){
-      alert("Please provide Name, Type, and have valid Latitude and Longitude (use Geocode Address if needed).");
+      alert("Please provide Name, Type, and valid Latitude/Longitude (use Geocode Address if needed).");
       return;
     }
-
     pins.push({ name, type, county, address: addr, zip, lat, lon, labelPos });
-    renderPins();
-    refreshPinsTable();
-
-    // Light reset for rapid entry
-    // document.getElementById("pinName").value = "";
-    // document.getElementById("pinAddress").value = "";
+    renderPins(); refreshPinsTable();
   }
 
   function downloadSVG(filename){
@@ -495,77 +390,43 @@
     const file = new Blob([raw], {type:"image/svg+xml;charset=utf-8"});
     const url = URL.createObjectURL(file);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = filename || "county_outline.svg";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    a.href = url; a.download = filename || "county_outline.svg";
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   }
 
-  // ====== Geocoding Helpers (Nominatim) ======
   function buildNominatimParams(obj){
     const params = new URLSearchParams(obj);
-    if (NOMINATIM_EMAIL && NOMINATIM_EMAIL.includes("@")) {
-      params.set("email", NOMINATIM_EMAIL);
-    }
+    if (NOMINATIM_EMAIL && NOMINATIM_EMAIL.includes("@")) { params.set("email", NOMINATIM_EMAIL); }
     return params.toString();
   }
-
   async function geocodeAddress(address){
-    const q = (address || "").trim();
-    if (!q) throw new Error("Empty address.");
-    const url = "https://nominatim.openstreetmap.org/search?" + buildNominatimParams({
-      q, format:"jsonv2", addressdetails:1, limit:1
-    });
-    const r = await fetch(url, { headers: { "Accept": "application/json" }});
-    if (!r.ok) throw new Error("Geocoding failed.");
-    const data = await r.json();
-    if (!data || !data.length) throw new Error("No match found.");
-    const { lat, lon, display_name } = data[0];
-    return { lat: parseFloat(lat), lon: parseFloat(lon), display_name };
+    const q = (address || "").trim(); if (!q) throw new Error("Empty address.");
+    const url = "https://nominatim.openstreetmap.org/search?" + buildNominatimParams({ q, format:"jsonv2", addressdetails:1, limit:1 });
+    const r = await fetch(url, { headers: { "Accept": "application/json" }}); if (!r.ok) throw new Error("Geocoding failed.");
+    const data = await r.json(); if (!data || !data.length) throw new Error("No match found.");
+    const { lat, lon, display_name } = data[0]; return { lat: parseFloat(lat), lon: parseFloat(lon), display_name };
   }
-
   async function reverseGeocode(lat, lon){
-    const url = "https://nominatim.openstreetmap.org/reverse?" + buildNominatimParams({
-      lat, lon, format:"jsonv2", addressdetails:1
-    });
-    const r = await fetch(url, { headers: { "Accept": "application/json" }});
-    if (!r.ok) throw new Error("Reverse geocoding failed.");
-    const data = await r.json();
-    if (!data) throw new Error("No result.");
+    const url = "https://nominatim.openstreetmap.org/reverse?" + buildNominatimParams({ lat, lon, format:"jsonv2", addressdetails:1 });
+    const r = await fetch(url, { headers: { "Accept": "application/json" }}); if (!r.ok) throw new Error("Reverse geocoding failed.");
+    const data = await r.json(); if (!data) throw new Error("No result.");
     return { display_name: data.display_name || "(no address)", address: data.address || {} };
   }
 
-  // ====== UI Wiring ======
+  // UI wiring
   document.getElementById("renderBtn").addEventListener("click", () => {
     const fips = document.getElementById("fips").value.trim();
     const labelText = document.getElementById("labelText").value.trim();
     const labelPos = document.getElementById("labelPos").value;
-
-    if (!/^\d{5}$/.test(fips)) {
-      alert("Please enter a 5-digit FIPS code (e.g., 35001).");
-      return;
-    }
+    if (!/^\d{5}$/.test(fips)) { alert("Please enter a 5-digit FIPS code (e.g., 35001)."); return; }
     currentFips = fips;
-
     const params = new URLSearchParams(location.search);
-    params.set("fips", fips);
-    params.set("label", labelText);
-    params.set("pos", labelPos);
+    params.set("fips", fips); params.set("label", labelText); params.set("pos", labelPos);
     history.replaceState({}, "", `${location.pathname}?${params.toString()}`);
-
     renderCountyByFIPS(fips, labelText, labelPos);
   });
-
-  document.getElementById("downloadBtn").addEventListener("click", () => {
-    downloadSVG(`county_${currentFips}.svg`);
-  });
-
-  document.getElementById("applyColorsBtn").addEventListener("click", () => {
-    applyAllColorsFromInputs();
-    renderPins(); // update symbol colors on map
-  });
+  document.getElementById("downloadBtn").addEventListener("click", () => downloadSVG(`county_${currentFips}.svg`));
+  document.getElementById("applyColorsBtn").addEventListener("click", () => { applyAllColorsFromInputs(); renderPins(); });
 
   document.getElementById("geocodeBtn").addEventListener("click", async () => {
     const addr = document.getElementById("pinAddress").value.trim();
@@ -577,18 +438,11 @@
       if (!document.getElementById("pinName").value.trim()){
         document.getElementById("pinName").value = res.display_name.split(",")[0];
       }
-    }catch(err){
-      alert("Geocoding error: " + err.message);
-    }
+    }catch(err){ alert("Geocoding error: " + err.message); }
   });
-
   document.getElementById("addPinBtn").addEventListener("click", addPinFromForm);
   document.getElementById("clearPinsBtn").addEventListener("click", () => {
-    if (confirm("Remove all pins?")) {
-      pins.length = 0;
-      renderPins();
-      refreshPinsTable();
-    }
+    if (confirm("Remove all pins?")) { pins.length = 0; renderPins(); refreshPinsTable(); }
   });
 
   // Checker
@@ -596,42 +450,32 @@
     const addr = document.getElementById("chkAddress").value.trim();
     const out = document.getElementById("chkResult");
     if (!addr){ out.textContent = "Enter an address first."; return; }
-    try{
-      const res = await geocodeAddress(addr);
-      out.textContent = `Lat: ${res.lat.toFixed(6)}, Lon: ${res.lon.toFixed(6)} — ${res.display_name}`;
-    }catch(err){
-      out.textContent = "Geocoding error: " + err.message;
-    }
+    try{ const res = await geocodeAddress(addr); out.textContent = `Lat: ${res.lat.toFixed(6)}, Lon: ${res.lon.toFixed(6)} — ${res.display_name}`; }
+    catch(err){ out.textContent = "Geocoding error: " + err.message; }
   });
-
   document.getElementById("chkReverseBtn").addEventListener("click", async () => {
     const lat = parseFloat(document.getElementById("chkLat").value);
     const lon = parseFloat(document.getElementById("chkLon").value);
     const out = document.getElementById("chkResult");
     if (isNaN(lat) || isNaN(lon)){ out.textContent = "Enter both latitude and longitude."; return; }
-    try{
-      const res = await reverseGeocode(lat, lon);
-      out.textContent = res.display_name;
-    }catch(err){
-      out.textContent = "Reverse geocoding error: " + err.message;
-    }
+    try{ const res = await reverseGeocode(lat, lon); out.textContent = res.display_name; }
+    catch(err){ out.textContent = "Reverse geocoding error: " + err.message; }
   });
 
-  // Init from URL params
+  // Init
   (function initFromQuery(){
     const params = new URLSearchParams(location.search);
     const fips = params.get("fips") || "35001";
     const label = params.get("label") || "Behavioral Region 2 (Bernalillo)";
     const pos = params.get("pos") || "left";
-
     currentFips = fips;
     document.getElementById("fips").value = fips;
     document.getElementById("labelText").value = label;
     document.getElementById("labelPos").value = pos;
-
     applyAllColorsFromInputs();
     renderCountyByFIPS(fips, label, pos);
   })();
   </script>
 </body>
 </html>
+    
