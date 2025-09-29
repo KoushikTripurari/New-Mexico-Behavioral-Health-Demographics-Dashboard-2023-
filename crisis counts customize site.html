@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Crisis Call Rates Comparison — Customizable</title>
+<title>Crisis Call Rates Comparison — Customizable (with Separate Color Apply)</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
@@ -24,19 +24,21 @@
   .group{background:#ffffff;border:1px solid #e6e9ee;border-radius:10px;padding:14px}
   .group h3{font-size:16px;margin-bottom:10px;color:#2c3e50}
   label{display:block;font-size:12px;font-weight:700;color:#334155;margin-bottom:6px}
-  input[type="text"],input[type="number"]{
+  input[type="text"],input[type="number"],input[type="color"]{
     width:100%;padding:.55rem .65rem;border:1px solid #d8dee6;border-radius:8px;font-weight:600;background:#fff
   }
   .hint{font-size:12px;color:#6b7280;margin-top:4px}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .btn{appearance:none;border:0;border-radius:10px;background:#3498db;color:#fff;padding:.6rem 1rem;font-weight:800;cursor:pointer}
   .btn:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 8px 16px rgba(0,0,0,.12)}
+  .btn.secondary{background:#7f8c8d}
+  .input-invalid{border-color:#dc2626 !important; box-shadow:0 0 0 3px rgba(220,38,38,.1)}
 
   /* Main content */
   .content{padding:30px;display:grid;grid-template-columns:1fr 1fr;gap:30px}
   .card{padding:25px;border-radius:12px;box-shadow:0 5px 15px rgba(0,0,0,.08)}
-  .br-card{background:linear-gradient(135deg,#f1f2f6 0%,#dfe4ea 100%);border-left:5px solid #7f8c8d}
-  .nm-card{background:linear-gradient(135deg,#d6eaf8 0%,#ebf5fb 100%);border-left:5px solid #3498db}
+  .br-card{background:linear-gradient(135deg,#f1f2f6 0%,#dfe4ea 100%)}
+  .nm-card{background:linear-gradient(135deg,#d6eaf8 0%,#ebf5fb 100%)}
   h2{font-size:22px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:10px}
 
   .metrics{display:grid;grid-template-columns:1fr 1fr;gap:15px}
@@ -47,8 +49,6 @@
 
   .rate-container{text-align:center;margin:25px 0 15px}
   .rate{font-size:32px;font-weight:800;padding:15px;border-radius:10px;display:inline-block;min-width:180px}
-  .br-rate{background:#7f8c8d;color:#fff}
-  .nm-rate{background:#3498db;color:#fff}
   .trend{display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;margin-top:10px}
 
   .data-table{grid-column:span 2;width:100%;border-collapse:collapse;margin-top:20px;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,.08)}
@@ -56,8 +56,6 @@
   .data-table td{padding:12px 15px;text-align:center;border-bottom:1px solid #eaeaea}
   .data-table tr:nth-child(even){background:#f8f9fa}
   .data-table tr:last-child td{border-bottom:none}
-  .br-cell{background:rgba(127,140,141,.1)}
-  .nm-cell{background:rgba(52,152,219,.1)}
 
   .data-highlight{background:#2c3e50;color:#fff;padding:15px;border-radius:10px;text-align:center;margin-top:20px;grid-column:span 2}
 
@@ -67,12 +65,10 @@
   .chart-title{text-align:center;margin-bottom:15px;font-weight:600;color:#2c3e50}
   .bar-container{height:30px;background:#ecf0f1;border-radius:15px;margin:15px 0;overflow:hidden;position:relative}
   .bar{height:100%;border-radius:15px;display:flex;align-items:center;justify-content:flex-end;padding-right:15px;color:#fff;font-weight:bold;font-size:14px}
-  .br-bar{background:#7f8c8d}
-  .nm-bar{background:#3498db}
 
   .legend{display:flex;justify-content:center;gap:30px;margin-top:20px}
   .legend-item{display:flex;align-items:center;gap:10px}
-  .color-box{width:20px;height:20px;border-radius:4px}
+  .color-box{width:20px;height:20px;border-radius:4px;border:1px solid #cbd5e1}
 
   .key-takeaway{grid-column:span 2;background:#fff9e6;padding:25px;border-radius:12px;margin-top:20px;border-left:5px solid #f1c40f}
   .key-takeaway h3{display:flex;align-items:center;gap:10px;margin-bottom:15px;color:#d35400}
@@ -128,7 +124,7 @@
           <div class="row">
             <button id="applyBtn" class="btn">Apply Changes</button>
           </div>
-          <p class="hint">Updates cards, table, rates & bars.</p>
+          <p class="hint">Updates cards, table, rates & bars (numbers/text only).</p>
         </div>
       </div>
 
@@ -156,18 +152,38 @@
           <p class="hint">Keeps tiny bars visible (0–30 recommended).</p>
         </div>
 
+        <!-- COLORS: Hex + picker, live preview + separate Apply -->
         <div class="group">
-          <h3>Reset</h3>
+          <h3>Colors</h3>
+
+          <!-- Region color -->
+          <label for="brColor">Region color (picker)</label>
           <div class="row">
-            <button id="resetBtn" class="btn" style="background:#7f8c8d">Reset Defaults</button>
+            <input id="brColor" type="color" value="#7f8c8d" style="width:120px" />
+            <input id="brColorHex" type="text" value="#7f8c8d" placeholder="#RRGGBB" aria-label="Region hex color" style="width:140px" />
+            <span id="brSwatch" title="Region color preview" style="display:inline-block;width:20px;height:20px;border-radius:4px;border:1px solid #cbd5e1;background:#7f8c8d"></span>
           </div>
+          <p class="hint">Enter a hex like <code>#1E5D30</code> or use the picker.</p>
+
+          <!-- State color -->
+          <label for="nmColor" style="margin-top:10px">State color (picker)</label>
+          <div class="row">
+            <input id="nmColor" type="color" value="#3498db" style="width:120px" />
+            <input id="nmColorHex" type="text" value="#3498db" placeholder="#RRGGBB" aria-label="State hex color" style="width:140px" />
+            <span id="nmSwatch" title="State color preview" style="display:inline-block;width:20px;height:20px;border-radius:4px;border:1px solid #cbd5e1;background:#3498db"></span>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <button id="applyColorsBtn" class="btn secondary">Apply Colors Only</button>
+          </div>
+          <p class="hint">Applies to cards, table tints, bars & legend. (Does not change numbers/text.)</p>
         </div>
       </div>
     </section>
 
     <div class="content">
       <!-- BR Card -->
-      <div class="card br-card">
+      <div class="card br-card" id="brCard" style="border-left:5px solid #7f8c8d">
         <h2><i class="fas fa-building"></i> <span id="brNameCard">BR3</span> Service Area</h2>
         <div class="metrics">
           <div class="metric">
@@ -193,14 +209,14 @@
         </div>
 
         <div class="rate-container">
-          <div class="rate br-rate" id="brRate23">0.81% (2023)</div>
-          <div class="rate br-rate" id="brRate24">0.76% (2024)</div>
+          <div class="rate" id="brRate23" style="background:#7f8c8d;color:#fff">0.81% (2023)</div>
+          <div class="rate" id="brRate24" style="background:#7f8c8d;color:#fff">0.76% (2024)</div>
           <div class="trend" id="brTrend"><i class="fas fa-arrow-down"></i> <span>Decreased from 2023 to 2024</span></div>
         </div>
       </div>
 
       <!-- NM Card -->
-      <div class="card nm-card">
+      <div class="card nm-card" id="nmCard" style="border-left:5px solid #3498db">
         <h2><i class="fas fa-map-marked-alt"></i> State of New Mexico</h2>
         <div class="metrics">
           <div class="metric">
@@ -226,8 +242,8 @@
         </div>
 
         <div class="rate-container">
-          <div class="rate nm-rate" id="nmRate23">1.42% (2023)</div>
-          <div class="rate nm-rate" id="nmRate24">1.32% (2024)</div>
+          <div class="rate" id="nmRate23" style="background:#3498db;color:#fff">1.42% (2023)</div>
+          <div class="rate" id="nmRate24" style="background:#3498db;color:#fff">1.32% (2024)</div>
           <div class="trend" id="nmTrend"><i class="fas fa-arrow-down"></i> <span>Decreased from 2023 to 2024</span></div>
         </div>
       </div>
@@ -251,24 +267,24 @@
         <tbody>
           <tr>
             <td>Crisis Calls</td>
-            <td class="br-cell" id="tblBrCalls23">1,831</td>
-            <td class="nm-cell" id="tblNmCalls23">29,977</td>
-            <td class="br-cell" id="tblBrCalls24">1,733</td>
-            <td class="nm-cell" id="tblNmCalls24">28,137</td>
+            <td class="br-cell" id="tblBrCalls23" style="background:rgba(127,140,141,.10)">1,831</td>
+            <td class="nm-cell" id="tblNmCalls23" style="background:rgba(52,152,219,.10)">29,977</td>
+            <td class="br-cell" id="tblBrCalls24" style="background:rgba(127,140,141,.10)">1,733</td>
+            <td class="nm-cell" id="tblNmCalls24" style="background:rgba(52,152,219,.10)">28,137</td>
           </tr>
           <tr>
             <td>Total Population</td>
-            <td class="br-cell" id="tblBrPop23">225,210</td>
-            <td class="nm-cell" id="tblNmPop23">2,117,522</td>
-            <td class="br-cell" id="tblBrPop24">229,366</td>
-            <td class="nm-cell" id="tblNmPop24">2,130,256</td>
+            <td class="br-cell" id="tblBrPop23" style="background:rgba(127,140,141,.10)">225,210</td>
+            <td class="nm-cell" id="tblNmPop23" style="background:rgba(52,152,219,.10)">2,117,522</td>
+            <td class="br-cell" id="tblBrPop24" style="background:rgba(127,140,141,.10)">229,366</td>
+            <td class="nm-cell" id="tblNmPop24" style="background:rgba(52,152,219,.10)">2,130,256</td>
           </tr>
           <tr>
             <td>Crisis Rate (%)</td>
-            <td class="br-cell" id="tblBrRate23">0.81%</td>
-            <td class="nm-cell" id="tblNmRate23">1.42%</td>
-            <td class="br-cell" id="tblBrRate24">0.76%</td>
-            <td class="nm-cell" id="tblNmRate24">1.32%</td>
+            <td class="br-cell" id="tblBrRate23" style="background:rgba(127,140,141,.10)">0.81%</td>
+            <td class="nm-cell" id="tblNmRate23" style="background:rgba(52,152,219,.10)">1.42%</td>
+            <td class="br-cell" id="tblBrRate24" style="background:rgba(127,140,141,.10)">0.76%</td>
+            <td class="nm-cell" id="tblNmRate24" style="background:rgba(52,152,219,.10)">1.32%</td>
           </tr>
         </tbody>
       </table>
@@ -289,22 +305,22 @@
 
             <div id="lblBrRate23">BR3 2023: 0.81%</div>
             <div class="bar-container">
-              <div class="bar br-bar" id="barBrRate23" style="width:32%">0.81%</div>
+              <div class="bar" id="barBrRate23" style="width:32%;background:#7f8c8d">0.81%</div>
             </div>
 
             <div id="lblBrRate24">BR3 2024: 0.76%</div>
             <div class="bar-container">
-              <div class="bar br-bar" id="barBrRate24" style="width:30%">0.76%</div>
+              <div class="bar" id="barBrRate24" style="width:30%;background:#7f8c8d">0.76%</div>
             </div>
 
             <div id="lblNmRate23">NM 2023: 1.42%</div>
             <div class="bar-container">
-              <div class="bar nm-bar" id="barNmRate23" style="width:57%">1.42%</div>
+              <div class="bar" id="barNmRate23" style="width:57%;background:#3498db">1.42%</div>
             </div>
 
             <div id="lblNmRate24">NM 2024: 1.32%</div>
             <div class="bar-container">
-              <div class="bar nm-bar" id="barNmRate24" style="width:53%">1.32%</div>
+              <div class="bar" id="barNmRate24" style="width:53%;background:#3498db">1.32%</div>
             </div>
           </div>
 
@@ -313,33 +329,33 @@
 
             <div id="lblBrCalls23">BR3 2023: 1,831</div>
             <div class="bar-container">
-              <div class="bar br-bar" id="barBrCalls23" style="width:12%">1,831</div>
+              <div class="bar" id="barBrCalls23" style="width:12%;background:#7f8c8d">1,831</div>
             </div>
 
             <div id="lblBrCalls24">BR3 2024: 1,733</div>
             <div class="bar-container">
-              <div class="bar br-bar" id="barBrCalls24" style="width:11%">1,733</div>
+              <div class="bar" id="barBrCalls24" style="width:11%;background:#7f8c8d">1,733</div>
             </div>
 
             <div id="lblNmCalls23">NM 2023: 29,977</div>
             <div class="bar-container">
-              <div class="bar nm-bar" id="barNmCalls23" style="width:70%">29,977</div>
+              <div class="bar" id="barNmCalls23" style="width:70%;background:#3498db">29,977</div>
             </div>
 
             <div id="lblNmCalls24">NM 2024: 28,137</div>
             <div class="bar-container">
-              <div class="bar nm-bar" id="barNmCalls24" style="width:66%">28,137</div>
+              <div class="bar" id="barNmCalls24" style="width:66%;background:#3498db">28,137</div>
             </div>
           </div>
         </div>
 
         <div class="legend">
           <div class="legend-item">
-            <div class="color-box" style="background:#7f8c8d"></div>
+            <div class="color-box" id="legendBrBox" style="background:#7f8c8d"></div>
             <span id="legendBrName">BR3 Service Area</span>
           </div>
           <div class="legend-item">
-            <div class="color-box" style="background:#3498db"></div>
+            <div class="color-box" id="legendNmBox" style="background:#3498db"></div>
             <span>New Mexico</span>
           </div>
         </div>
@@ -366,6 +382,32 @@
   const pct = (num, den) => den ? (100 * num / den) : 0;
   const fmtPct = v => (Math.round(v * 100) / 100).toFixed(2) + '%';
 
+  // Color helpers
+  function normalizeHex(v){
+    if(!v) return null;
+    v = v.trim();
+    if(v[0] !== '#') v = '#'+v;
+    if(/^#([0-9A-Fa-f]{6})$/.test(v)) return v.toUpperCase();
+    if(/^#([0-9A-Fa-f]{3})$/.test(v)){
+      const c = v.slice(1).split('').map(x=>x+x).join('');
+      return ('#'+c).toUpperCase();
+    }
+    return null;
+  }
+  function hexToRgb(hex){
+    const h = normalizeHex(hex);
+    if(!h) return null;
+    const v = h.slice(1);
+    const r = parseInt(v.slice(0,2),16);
+    const g = parseInt(v.slice(2,4),16);
+    const b = parseInt(v.slice(4,6),16);
+    return {r,g,b};
+  }
+  function rgba(hex, a){
+    const c = hexToRgb(hex);
+    return c ? `rgba(${c.r},${c.g},${c.b},${a})` : 'rgba(0,0,0,0.1)';
+  }
+
   function getInputs(){
     return {
       brName: document.getElementById('brName').value.trim() || 'BR',
@@ -377,10 +419,18 @@
       nmCalls23: +document.getElementById('nmCalls23').value,
       nmPop24: +document.getElementById('nmPop24').value,
       nmCalls24: +document.getElementById('nmCalls24').value,
-      minBarPct: Math.max(0, Math.min(30, +document.getElementById('minBarPct').value || 0))
+      minBarPct: Math.max(0, Math.min(30, +document.getElementById('minBarPct').value || 0)),
     };
   }
 
+  function getColors(){
+    return {
+      brColor: normalizeHex(document.getElementById('brColorHex').value) || normalizeHex(document.getElementById('brColor').value) || '#7F8C8D',
+      nmColor: normalizeHex(document.getElementById('nmColorHex').value) || normalizeHex(document.getElementById('nmColor').value) || '#3498DB',
+    };
+  }
+
+  // ---- APPLY NUMBERS/TEXT ----
   function apply(){
     const d = getInputs();
 
@@ -417,7 +467,7 @@
     document.getElementById('nmRate23').textContent = `${fmtPct(nmRate23)} (2023)`;
     document.getElementById('nmRate24').textContent = `${fmtPct(nmRate24)} (2024)`;
 
-    // Table
+    // Table values
     document.getElementById('tblBrCalls23').textContent = fmtInt(d.brCalls23);
     document.getElementById('tblBrCalls24').textContent = fmtInt(d.brCalls24);
     document.getElementById('tblNmCalls23').textContent = fmtInt(d.nmCalls23);
@@ -450,71 +500,118 @@
     const yoyText = `${d.brName} crisis calls ${brYoY < 0 ? 'decreased' : (brYoY > 0 ? 'increased' : 'were unchanged')} by <strong>${Math.abs(brPctYoY).toFixed(1)}%</strong> (${fmtInt(d.brCalls23)} → ${fmtInt(d.brCalls24)}) while New Mexico ${nmYoY < 0 ? 'decreased' : (nmYoY > 0 ? 'increased' : 'was unchanged')} by <strong>${Math.abs(nmPctYoY).toFixed(1)}%</strong> (${fmtInt(d.nmCalls23)} → ${fmtInt(d.nmCalls24)}).`;
     document.getElementById('yoyText').innerHTML = yoyText;
 
-    // Labels for charts
+    // Bars widths only (keep existing colors; color button will recolor)
+    const minPct = Math.max(0, Math.min(30, +document.getElementById('minBarPct').value || 0));
+
+    const rateVals = [brRate23, brRate24, nmRate23, nmRate24];
+    const rateMax = Math.max(...rateVals, 1e-9);
+    setBarWidth('barBrRate23', brRate23, rateMax, minPct, fmtPct(brRate23));
+    setBarWidth('barBrRate24', brRate24, rateMax, minPct, fmtPct(brRate24));
+    setBarWidth('barNmRate23', nmRate23, rateMax, minPct, fmtPct(nmRate23));
+    setBarWidth('barNmRate24', nmRate24, rateMax, minPct, fmtPct(nmRate24));
+
+    const callVals = [d.brCalls23, d.brCalls24, d.nmCalls23, d.nmCalls24];
+    const callsMax = Math.max(...callVals, 1);
+    setBarWidth('barBrCalls23', d.brCalls23, callsMax, minPct, fmtInt(d.brCalls23));
+    setBarWidth('barBrCalls24', d.brCalls24, callsMax, minPct, fmtInt(d.brCalls24));
+    setBarWidth('barNmCalls23', d.nmCalls23, callsMax, minPct, fmtInt(d.nmCalls23));
+    setBarWidth('barNmCalls24', d.nmCalls24, callsMax, minPct, fmtInt(d.nmCalls24));
+
+    // Labels for charts (text only)
     document.getElementById('lblBrRate23').textContent = `${d.brName} 2023: ${fmtPct(brRate23)}`;
     document.getElementById('lblBrRate24').textContent = `${d.brName} 2024: ${fmtPct(brRate24)}`;
     document.getElementById('lblNmRate23').textContent = `NM 2023: ${fmtPct(nmRate23)}`;
     document.getElementById('lblNmRate24').textContent = `NM 2024: ${fmtPct(nmRate24)}`;
-
     document.getElementById('lblBrCalls23').textContent = `${d.brName} 2023: ${fmtInt(d.brCalls23)}`;
     document.getElementById('lblBrCalls24').textContent = `${d.brName} 2024: ${fmtInt(d.brCalls24)}`;
     document.getElementById('lblNmCalls23').textContent = `NM 2023: ${fmtInt(d.nmCalls23)}`;
     document.getElementById('lblNmCalls24').textContent = `NM 2024: ${fmtInt(d.nmCalls24)}`;
-
-    // Bars (auto scale within each chart)
-    const minPct = d.minBarPct;
-
-    // Rates chart
-    const rateVals = [brRate23, brRate24, nmRate23, nmRate24];
-    const rateMax = Math.max(...rateVals, 1e-9);
-    setBar('barBrRate23', brRate23, rateMax, minPct, fmtPct(brRate23));
-    setBar('barBrRate24', brRate24, rateMax, minPct, fmtPct(brRate24));
-    setBar('barNmRate23', nmRate23, rateMax, minPct, fmtPct(nmRate23));
-    setBar('barNmRate24', nmRate24, rateMax, minPct, fmtPct(nmRate24));
-
-    // Calls chart
-    const callVals = [d.brCalls23, d.brCalls24, d.nmCalls23, d.nmCalls24];
-    const callsMax = Math.max(...callVals, 1);
-    setBar('barBrCalls23', d.brCalls23, callsMax, minPct, fmtInt(d.brCalls23));
-    setBar('barBrCalls24', d.brCalls24, callsMax, minPct, fmtInt(d.brCalls24));
-    setBar('barNmCalls23', d.nmCalls23, callsMax, minPct, fmtInt(d.nmCalls23));
-    setBar('barNmCalls24', d.nmCalls24, callsMax, minPct, fmtInt(d.nmCalls24));
   }
 
-  function setBar(id, val, vmax, minPct, label){
+  function setBarWidth(id, val, vmax, minPct, label){
     const el = document.getElementById(id);
     const pctW = Math.max(minPct, (val / vmax) * 100);
     el.style.width = Math.min(100, pctW).toFixed(1) + '%';
     el.textContent = label;
   }
 
+  // ---- APPLY COLORS ONLY ----
+  function applyColors(){
+    const { brColor, nmColor } = getColors();
+
+    // Sync pickers <-> hex inputs and swatches
+    const setColorUI = (hex, pickId, hexId, swatchId) => {
+      const pick = document.getElementById(pickId);
+      const hexEl = document.getElementById(hexId);
+      const sw = document.getElementById(swatchId);
+      hexEl.value = hex;
+      pick.value = hex;
+      hexEl.classList.remove('input-invalid');
+      sw.style.background = hex;
+    };
+    setColorUI(brColor, 'brColor', 'brColorHex', 'brSwatch');
+    setColorUI(nmColor, 'nmColor', 'nmColorHex', 'nmSwatch');
+
+    // Cards & rate badges
+    document.getElementById('brCard').style.borderLeftColor = brColor;
+    document.getElementById('nmCard').style.borderLeftColor = nmColor;
+    document.getElementById('brRate23').style.background = brColor;
+    document.getElementById('brRate24').style.background = brColor;
+    document.getElementById('nmRate23').style.background = nmColor;
+    document.getElementById('nmRate24').style.background = nmColor;
+
+    // Legend
+    document.getElementById('legendBrBox').style.background = brColor;
+    document.getElementById('legendNmBox').style.background = nmColor;
+
+    // Bars: recolor only (keep current widths)
+    ['barBrRate23','barBrRate24','barBrCalls23','barBrCalls24'].forEach(id=>{
+      document.getElementById(id).style.background = brColor;
+    });
+    ['barNmRate23','barNmRate24','barNmCalls23','barNmCalls24'].forEach(id=>{
+      document.getElementById(id).style.background = nmColor;
+    });
+
+    // Table cell tints
+    const brTint = rgba(brColor, .10);
+    const nmTint = rgba(nmColor, .10);
+    ['tblBrCalls23','tblBrCalls24','tblBrPop23','tblBrPop24','tblBrRate23','tblBrRate24'].forEach(id=>{
+      document.getElementById(id).style.background = brTint;
+    });
+    ['tblNmCalls23','tblNmCalls24','tblNmPop23','tblNmPop24','tblNmRate23','tblNmRate24'].forEach(id=>{
+      document.getElementById(id).style.background = nmTint;
+    });
+  }
+
+  // Color input validation helpers (don’t auto-apply; just clean the field)
+  function previewHexField(el, setter){
+    const good = normalizeHex(el.value);
+    if(good){
+      el.classList.remove('input-invalid');
+    }else{
+      el.classList.add('input-invalid');
+    }
+  }
+
   // Buttons
   document.getElementById('applyBtn').addEventListener('click', apply);
-  document.getElementById('resetBtn').addEventListener('click', () => {
-    // Defaults
-    document.getElementById('brName').value = 'BR3';
-    document.getElementById('brPop23').value = 225210;
-    document.getElementById('brCalls23').value = 1831;
-    document.getElementById('brPop24').value = 229366;
-    document.getElementById('brCalls24').value = 1733;
+  document.getElementById('applyColorsBtn').addEventListener('click', applyColors);
 
-    document.getElementById('nmPop23').value = 2117522;
-    document.getElementById('nmCalls23').value = 29977;
-    document.getElementById('nmPop24').value = 2130256;
-    document.getElementById('nmCalls24').value = 28137;
+  // Auto-apply numbers/text only (exclude color fields)
+  Array.from(document.querySelectorAll('.customizer input'))
+    .filter(inp => !['brColor','nmColor','brColorHex','nmColorHex'].includes(inp.id))
+    .forEach(inp => {
+      inp.addEventListener('change', apply);
+      inp.addEventListener('keyup', e => { if(e.key==='Enter') apply(); });
+    });
 
-    document.getElementById('minBarPct').value = 10;
-    apply();
-  });
-
-  // Auto-apply when any input changes (optional; keeps it responsive)
-  Array.from(document.querySelectorAll('.customizer input')).forEach(inp => {
-    inp.addEventListener('change', apply);
-    inp.addEventListener('keyup', e => { if(e.key==='Enter') apply(); });
-  });
+  // Color fields: validate typing, but don’t apply until button pressed
+  document.getElementById('brColorHex').addEventListener('input', e => previewHexField(e.target));
+  document.getElementById('nmColorHex').addEventListener('input', e => previewHexField(e.target));
 
   // Initial render
   apply();
+  applyColors();
 </script>
 </body>
 </html>
