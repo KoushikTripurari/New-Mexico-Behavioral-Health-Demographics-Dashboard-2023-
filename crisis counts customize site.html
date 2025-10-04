@@ -37,8 +37,9 @@
   /* Main content */
   .content{padding:30px;display:grid;grid-template-columns:1fr 1fr;gap:30px}
   .card{padding:25px;border-radius:12px;box-shadow:0 5px 15px rgba(0,0,0,.08)}
-  .br-card{background:linear-gradient(135deg,#f1f2f6 0%,#dfe4ea 100%)}
-  .nm-card{background:linear-gradient(135deg,#d6eaf8 0%,#ebf5fb 100%)}
+  /* Neutral fallbacks; JS sets themed gradients dynamically */
+  .br-card{background:#f1f2f6}
+  .nm-card{background:#ebf5fb}
   h2{font-size:22px;margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:10px}
 
   .metrics{display:grid;grid-template-columns:1fr 1fr;gap:15px}
@@ -377,7 +378,7 @@
   </div>
 
 <script>
-  // Utilities
+  // --------- Utilities ---------
   const fmtInt = n => Number(n).toLocaleString('en-US');
   const pct = (num, den) => den ? (100 * num / den) : 0;
   const fmtPct = v => (Math.round(v * 100) / 100).toFixed(2) + '%';
@@ -406,6 +407,18 @@
   function rgba(hex, a){
     const c = hexToRgb(hex);
     return c ? `rgba(${c.r},${c.g},${c.b},${a})` : 'rgba(0,0,0,0.1)';
+  }
+  function rgbToHex(r,g,b){
+    const to2 = v => v.toString(16).padStart(2,'0');
+    return ('#'+to2(r)+to2(g)+to2(b)).toUpperCase();
+  }
+  function lightenHex(hex, pct){
+    // pct in [0..1] — 0 = no change, 1 = white
+    const c = hexToRgb(hex); if(!c) return '#FFFFFF';
+    const r = Math.round(c.r + (255 - c.r) * pct);
+    const g = Math.round(c.g + (255 - c.g) * pct);
+    const b = Math.round(c.b + (255 - c.b) * pct);
+    return rgbToHex(r,g,b);
   }
 
   function getInputs(){
@@ -535,7 +548,7 @@
     el.textContent = label;
   }
 
-  // ---- APPLY COLORS ONLY ----
+  // ---- APPLY COLORS ONLY (includes BR card background theming) ----
   function applyColors(){
     const { brColor, nmColor } = getColors();
 
@@ -560,6 +573,18 @@
     document.getElementById('nmRate23').style.background = nmColor;
     document.getElementById('nmRate24').style.background = nmColor;
 
+    // NEW: BR card background follows BR color (soft gradient)
+    const brBg1 = lightenHex(brColor, 0.82);  // closer to base
+    const brBg2 = lightenHex(brColor, 0.93);  // closer to white
+    const brCard = document.getElementById('brCard');
+    brCard.style.background = `linear-gradient(135deg, ${brBg1} 0%, ${brBg2} 100%)`;
+
+    // OPTIONAL: NM card gradient (uncomment to theme NM panel too)
+    // const nmBg1 = lightenHex(nmColor, 0.82);
+    // const nmBg2 = lightenHex(nmColor, 0.93);
+    // const nmCard = document.getElementById('nmCard');
+    // nmCard.style.background = `linear-gradient(135deg, ${nmBg1} 0%, ${nmBg2} 100%)`;
+
     // Legend
     document.getElementById('legendBrBox').style.background = brColor;
     document.getElementById('legendNmBox').style.background = nmColor;
@@ -583,21 +608,18 @@
     });
   }
 
-  // Color input validation helpers (don’t auto-apply; just clean the field)
-  function previewHexField(el, setter){
+  // Color field validation (typing only)
+  function previewHexField(el){
     const good = normalizeHex(el.value);
-    if(good){
-      el.classList.remove('input-invalid');
-    }else{
-      el.classList.add('input-invalid');
-    }
+    if(good){ el.classList.remove('input-invalid'); }
+    else{ el.classList.add('input-invalid'); }
   }
 
   // Buttons
   document.getElementById('applyBtn').addEventListener('click', apply);
   document.getElementById('applyColorsBtn').addEventListener('click', applyColors);
 
-  // Auto-apply numbers/text only (exclude color fields)
+  // Auto-apply numbers/text (exclude color fields)
   Array.from(document.querySelectorAll('.customizer input'))
     .filter(inp => !['brColor','nmColor','brColorHex','nmColorHex'].includes(inp.id))
     .forEach(inp => {
@@ -605,7 +627,7 @@
       inp.addEventListener('keyup', e => { if(e.key==='Enter') apply(); });
     });
 
-  // Color fields: validate typing, but don’t apply until button pressed
+  // Color fields: validate typing
   document.getElementById('brColorHex').addEventListener('input', e => previewHexField(e.target));
   document.getElementById('nmColorHex').addEventListener('input', e => previewHexField(e.target));
 
