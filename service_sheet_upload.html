@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Client Counts — Upload & Visualize</title>
+
+<!-- Chart.js + SheetJS (needs internet unless you self-host) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.20.2/dist/xlsx.full.min.js"></script>
+
+<style>
+  :root{
+    --turquoise:#007a86; --turquoise-2:#0c8a96; --ink:#0b2233; --muted:#5b6b7a;
+    --ring:rgba(12,138,150,.28); --panel:#fff; --bg:#f4f8fb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(180deg,#eef7f9,#f7f9fc);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto}
+  header{position:sticky;top:0;background:linear-gradient(90deg,var(--turquoise),var(--turquoise-2));color:#fff;padding:18px 20px;box-shadow:0 6px 22px rgba(0,0,0,.12)}
+  header h1{margin:0;font-weight:800}
+  header p{margin:6px 0 0;opacity:.9}
+  .wrap{max-width:1200px;margin:24px auto;padding:0 16px}
+  .uploader{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--panel);border-radius:14px;padding:14px 16px;box-shadow:0 10px 36px rgba(0,0,0,.08)}
+  .file-btn{display:inline-flex;align-items:center;gap:10px;cursor:pointer;background:#fff;color:var(--turquoise);border:2px dashed var(--turquoise);padding:12px 14px;border-radius:12px;font-weight:700;transition:.2s}
+  .file-btn:hover{transform:translateY(-1px);box-shadow:0 8px 26px var(--ring)}
+  .hint{color:var(--muted)}
+  .error{margin-top:10px;background:#fff1f1;border:1px solid #f7c7c7;color:#8d1b1b;padding:10px 12px;border-radius:10px;display:none}
+  .ok{margin-top:10px;background:#f1fff7;border:1px solid #bfe8cf;color:#0f5132;padding:10px 12px;border-radius:10px;display:none}
+
+  .cards{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}
+  @media(min-width:1000px){.cards{grid-template-columns:1.1fr .9fr}}
+  .card{background:var(--panel);border-radius:16px;padding:16px;box-shadow:0 16px 40px rgba(0,0,0,.08)}
+  .card h3{margin:0 0 8px}
+  .totals{display:flex;gap:12px;flex-wrap:wrap;margin:6px 0 8px}
+  .pill{background:linear-gradient(90deg,#f8fbff,#fdfefe);border:1px solid #e6eef4;padding:8px 10px;border-radius:999px;font-weight:700;color:#0a2433}
+
+  .searchbar{display:flex;gap:10px;margin-bottom:8px}
+  .searchbar input{flex:1;padding:10px 12px;border:1px solid #d9e4ea;border-radius:10px;outline:none}
+  .searchbar input:focus{border-color:#0c8a96;box-shadow:0 0 0 4px var(--ring)}
+
+  .table-wrap{max-height:62vh;overflow:auto;border:1px solid #e7edf3;border-radius:12px}
+  table{width:100%;border-collapse:separate;border-spacing:0}
+  thead th{position:sticky;top:0;background:#fbfdff;color:#0a2433;z-index:1;text-align:left;padding:10px 12px;border-bottom:1px solid #e7edf3}
+  tbody td{padding:9px 12px;border-bottom:1px dashed #eef2f6}
+  tbody tr:hover{background:#fbfeff}
+  tbody tr:nth-child(even){background:#fcfeff}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .sortable{cursor:pointer}
+  .sort-ind{color:#7a8a9a;font-size:.8rem;margin-left:6px}
+  footer{text-align:center;color:#6b7280;padding:24px 10px 40px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Client Counts — Statewide vs BR1</h1>
+  <p>Upload your Excel (handles both tidy 3-col and two-block layouts).</p>
+</header>
+
+<div class="wrap">
+  <div class="uploader">
+    <label class="file-btn">
+      <input id="file" type="file" accept=".xlsx,.xls,.csv" hidden />
+      ⬆️ Upload Excel (.xlsx / .csv)
+    </label>
+    <div class="hint">If you see an error below, check headers / first sheet / internet.</div>
+  </div>
+  <div id="msgErr" class="error"></div>
+  <div id="msgOk" class="ok"></div>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Data Table</h3>
+      <div class="searchbar">
+        <input id="q" placeholder="Search services… (BHOP, Crisis_Services, IOP…)" />
+      </div>
+      <div class="totals" id="totals"></div>
+      <div class="table-wrap">
+        <table id="tbl">
+          <thead>
+          <tr>
+            <th class="sortable" data-key="Service">Service <span class="sort-ind">↕</span></th>
+            <th class="sortable num" data-key="Statewide">Statewide <span class="sort-ind">↕</span></th>
+            <th class="num">Statewide %</th>
+            <th class="sortable num" data-key="BR1">BR1 <span class="sort-ind">↕</span></th>
+            <th class="num">BR1 %</th>
+          </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Service Counts — Grouped Bars</h3>
+      <canvas id="chart" height="340"></canvas>
+    </div>
+  </div>
+  <footer>Click headers to sort • Type to filter • First sheet only</footer>
+</div>
+
+<script>
+(function checkScripts(){
+  const ok = !!(window.XLSX && window.Chart);
+  const e = document.getElementById('msgErr');
+  const o = document.getElementById('msgOk');
+  if(!ok){
+    e.style.display='block';
+    e.textContent = "Required libraries not loaded. Make sure you have internet access (CDN) or self-host xlsx.full.min.js and chart.umd.min.js.";
+  }else{
+    o.style.display='block';
+    o.textContent = "Scripts loaded: ready to parse files.";
+    setTimeout(()=>o.style.display='none', 2500);
+  }
+})();
+
+const $ = s => document.querySelector(s);
+const fmt = n => (n ?? 0).toLocaleString();
+const pct = (num, den) => den ? (num/den*100) : 0;
+
+let rows = [];
+let sortKey = "Service", sortDir = 1;
+let chart;
+
+function normalizeNumber(v){
+  if(v===null || v===undefined) return 0;
+  if(typeof v === 'number') return v;
+  const s = String(v).replace(/\u00A0/g,' ').replace(/[,\s]/g,'').trim();
+  const n = Number(s);
+  return isNaN(n) ? 0 : n;
+}
+function cleanText(s){
+  return String(s||'').replace(/\u00A0/g,' ').trim();
+}
+
+function tryParseTidy(json){
+  // Expect columns Service / Statewide / BR1 (case/space tolerant)
+  const mapRow = r => {
+    const obj = {};
+    for(const k of Object.keys(r)){
+      const kk = k.toLowerCase().replace(/\s+/g,'');
+      obj[kk] = r[k];
+    }
+    const Service = cleanText(r.Service ?? r.service ?? r.SERVICE ?? r['Service '] ?? r['SERVICE ']);
+    const Statewide = normalizeNumber(
+      r.Statewide ?? r.STATEWIDE ?? r.statewide ??
+      r['Count_Beneficiary_Statewide'] ?? r['Statewide_Count'] ?? r['Statewide ']
+    );
+    const BR1 = normalizeNumber(
+      r.BR1 ?? r['BR 1'] ?? r['BR1 '] ?? r['District2'] ?? r['District_2'] ??
+      r['BR1_Count'] ?? r['Count_Beneficiary_BR1']
+    );
+    if(Service) return {Service, Statewide, BR1};
+    return null;
+  };
+  const out = json.map(mapRow).filter(Boolean);
+  return out.length ? out : null;
+}
+
+function tryParseTwoBlock(ws){
+  // Use header:1 to get raw rows including merged headers
+  const A = XLSX.utils.sheet_to_json(ws, {header:1, defval:""});
+  if(!A.length) return null;
+
+  // find a row that contains 'Statewide' and 'BR1' (any cell)
+  let headerRowIdx = -1;
+  for(let i=0;i<Math.min(10, A.length);i++){
+    const row = A[i].map(x=>String(x).toLowerCase());
+    if(row.some(c=>c.includes('statewide')) && row.some(c=>c.includes('br1') || c.includes('district 2') || c.includes('district2'))) {
+      headerRowIdx = i;
+      break;
+    }
+  }
+  if(headerRowIdx === -1) return null;
+
+  // Heuristic: after headerRow, next row should be subheaders: Service | Count | Service | Count
+  const hdr2 = A[headerRowIdx+1] || [];
+  // locate four logical columns
+  // find first "Service" and next numeric header (Count_*), then second "Service" and count
+  const idxService1 = hdr2.findIndex(c => String(c).toLowerCase().includes('service'));
+  const idxCount1 = hdr2.findIndex((c,ix)=> ix>idxService1 && /count/i.test(String(c)));
+  let idxService2 = -1, idxCount2 = -1;
+
+  // search right half for second pair
+  for(let ix = (idxCount1> -1 ? idxCount1+1 : (idxService1+1)); ix<hdr2.length; ix++){
+    if(idxService2===-1 && String(hdr2[ix]).toLowerCase().includes('service')) idxService2 = ix;
+    if(idxService2>-1 && idxCount2===-1 && /count/i.test(String(hdr2[ix]))) { idxCount2 = ix; break; }
+  }
+
+  if(idxService1===-1 || idxCount1===-1 || idxService2===-1 || idxCount2===-1) return null;
+
+  // data starts after hdr2
+  const out = [];
+  for(let r = headerRowIdx+2; r < A.length; r++){
+    const row = A[r];
+    const s1 = cleanText(row[idxService1]);
+    const c1 = normalizeNumber(row[idxCount1]);
+    const s2 = cleanText(row[idxService2]);
+    const c2 = normalizeNumber(row[idxCount2]);
+
+    // Prefer service name from left; if both present and equal, fine
+    const service = s1 || s2;
+    const valid = service && (c1!==0 || c2!==0);
+    if(valid){
+      out.push({Service: service, Statewide: c1, BR1: c2});
+    }
+  }
+  return out.length ? out : null;
+}
+
+function render(){
+  const q = $("#q").value.trim().toLowerCase();
+  const filtered = rows.filter(r => r.Service.toLowerCase().includes(q));
+
+  const totalSW = filtered.reduce((s,r)=>s+(+r.Statewide||0),0);
+  const totalBR = filtered.reduce((s,r)=>s+(+r.BR1||0),0);
+
+  filtered.sort((a,b)=>{
+    const A=a[sortKey], B=b[sortKey];
+    if(sortKey==="Service") return sortDir * String(A).localeCompare(String(B),undefined,{numeric:true,sensitivity:'base'});
+    return sortDir * ((+A||0) - (+B||0));
+  });
+
+  const tb = $("#tbl tbody");
+  tb.innerHTML = filtered.map(r=>{
+    const sw=+r.Statewide||0, br=+r.BR1||0;
+    return `<tr>
+      <td>${r.Service}</td>
+      <td class="num">${fmt(sw)}</td>
+      <td class="num">${pct(sw,totalSW).toFixed(1)}%</td>
+      <td class="num">${fmt(br)}</td>
+      <td class="num">${pct(br,totalBR).toFixed(1)}%</td>
+    </tr>`;
+  }).join("");
+
+  $("#totals").innerHTML = `
+    <div class="pill">Total Statewide: ${fmt(totalSW)}</div>
+    <div class="pill">Total BR1: ${fmt(totalBR)}</div>
+    <div class="pill">Services: ${fmt(filtered.length)}</div>
+  `;
+
+  const top = [...filtered].map(r=>({...r,_sum:(+r.Statewide||0)+(+r.BR1||0)})).sort((a,b)=>b._sum-a._sum).slice(0,20);
+  const labels = top.map(r=>r.Service);
+  const sw = top.map(r=>+r.Statewide||0);
+  const br = top.map(r=>+r.BR1||0);
+
+  const data = {labels, datasets:[{label:"Statewide",data:sw},{label:"BR1",data:br}]};
+  const options = {
+    responsive:true,
+    plugins:{legend:{position:"top"}, tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmt(c.parsed.y)}`}}},
+    scales:{x:{ticks:{maxRotation:0,autoSkip:true}},y:{beginAtZero:true,ticks:{callback:val=>fmt(val)}}}
+  };
+  if(chart) chart.destroy();
+  const ctx = document.getElementById('chart');
+  chart = new Chart(ctx, {type:'bar', data, options});
+}
+
+document.querySelectorAll(".sortable").forEach(th=>{
+  th.addEventListener("click", ()=>{
+    const key = th.dataset.key;
+    if(sortKey===key){ sortDir *= -1 } else { sortKey = key; sortDir = (key==="Service")?1:-1; }
+    render();
+  });
+});
+$("#q").addEventListener("input", render);
+
+function showError(msg){
+  const e = $("#msgErr"); e.textContent = msg; e.style.display = 'block';
+}
+function clearError(){ const e=$("#msgErr"); e.textContent=""; e.style.display='none'; }
+
+$("#file").addEventListener("change", async (ev)=>{
+  clearError();
+  const f = ev.target.files[0];
+  if(!f) return;
+  try{
+    const buf = await f.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+
+    // Try tidy first
+    let json = XLSX.utils.sheet_to_json(ws, {defval:""});
+    let parsed = tryParseTidy(json);
+
+    // Fallback: two-block
+    if(!parsed) parsed = tryParseTwoBlock(ws);
+
+    if(!parsed || !parsed.length){
+      showError("Couldn’t find usable columns. Accepted formats:\n1) Service | Statewide | BR1\n2) Two-block sheet: (Statewide) Service/Count + (BR1) Service/Count on the same rows, with a header row that contains 'Statewide' and 'BR1'. Make sure data is on the FIRST sheet and headers are not merged across rows.");
+      return;
+    }
+
+    rows = parsed.filter(r => r.Service && (!isNaN(r.Statewide) || !isNaN(r.BR1)));
+    if(!rows.length){ showError("Rows parsed, but all counts are blank/zero."); return; }
+
+    // Info message
+    const o = $("#msgOk"); o.textContent = `Loaded ${rows.length} services from "${f.name}".`; o.style.display='block'; setTimeout(()=>o.style.display='none', 2500);
+
+    render();
+  }catch(err){
+    console.error(err);
+    showError("File read failed. If this is .xls, re-save as .xlsx or .csv. Also check for password protection or extremely large files.");
+  }
+});
+
+// Starter preview
+rows = [
+  {Service:"Recovery_Services", Statewide:28500, BR1:11710},
+  {Service:"RS_PSW", Statewide:4707, BR1:1456},
+  {Service:"RS_CCSS", Statewide:20270, BR1:8906},
+  {Service:"BHOP", Statewide:188968, BR1:55523},
+  {Service:"Crisis_Services", Statewide:51804, BR1:14914},
+  {Service:"CS_ED", Statewide:41904, BR1:11409},
+  {Service:"IntOutServ_IOP", Statewide:12049, BR1:5660},
+];
+render();
+</script>
+</body>
+</html>
