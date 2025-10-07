@@ -24,9 +24,10 @@
   .card{ background:#fff; border:1px solid #e6e8eb; border-radius:12px; padding:12px; box-shadow:0 4px 14px rgba(0,0,0,.05); }
 
   .grid{ display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin:10px 0 16px; }
-  .controls label, .colors label, .pins-editor label, .checker label{ font-size:.9rem; font-weight:700; display:block; margin-bottom:4px; }
-  input[type="text"], input[type="number"], select{ width:100%; padding:.5rem .6rem; border:1px solid #dfe3e7; border-radius:8px; font-weight:600; background:#fff; }
-  .row-btns{ display:flex; gap:10px; align-items:end; }
+  .controls label, .colors label, .pins-editor label, .checker label, .region-builder label{ font-size:.9rem; font-weight:700; display:block; margin-bottom:4px; }
+  input[type="text"], input[type="number"], select, textarea{ width:100%; padding:.5rem .6rem; border:1px solid #dfe3e7; border-radius:8px; font-weight:600; background:#fff; }
+  textarea{ min-height:70px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  .row-btns{ display:flex; gap:10px; align-items:end; flex-wrap:wrap; }
   button,a.button{ appearance:none; border:0; border-radius:10px; background:#007a86; color:#fff; padding:.55rem .9rem; font-weight:800; text-decoration:none; display:inline-flex; gap:.45rem; align-items:center; cursor:pointer; }
   button:hover, a.button:hover{ filter:brightness(1.05); transform:translateY(-1px); box-shadow:0 8px 16px rgba(0,0,0,.12) }
   .btn-secondary{ background:#4b4f55; }
@@ -34,6 +35,9 @@
   .mapbox{ position:relative; width:100%; aspect-ratio: 4 / 3; box-shadow:0 4px 20px rgba(0,0,0,.06) inset; border-radius:10px; overflow:hidden; background:#fff; }
   svg{ width:100%; height:100%; display:block; }
   .county{ fill:var(--fill); stroke:var(--stroke); stroke-width:1.6; vector-effect:non-scaling-stroke; }
+  /* New styles for NM context & selected region */
+  .county.context{ fill:#eceff2; stroke:#b8bec6; stroke-width:1; }
+  .county.selected{ fill:var(--fill); stroke:#000000; stroke-width:2.2; }
   .region-label{ font-size:14px; font-weight:900; fill:#1f2326; paint-order:stroke; stroke:#ffffff; stroke-width:4px; stroke-linejoin:round; }
 
   .panel{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between; margin-top:10px; }
@@ -85,7 +89,7 @@
   </header>
 
   <main class="wrap card">
-    <!-- County controls -->
+    <!-- County controls (single) -->
     <div class="controls grid">
       <div>
         <label for="fips">FIPS Code (5 digits)</label>
@@ -106,6 +110,50 @@
       <div class="row-btns">
         <button id="renderBtn" type="button">Render County</button>
         <button id="downloadBtn" type="button" title="Download the current SVG">Download SVG</button>
+      </div>
+    </div>
+
+    <!-- NEW: Region Builder for New Mexico -->
+    <div class="region-builder">
+      <h3>Region Builder (New Mexico Counties)</h3>
+      <div class="grid">
+        <div>
+          <label for="nmCountySelect">Add County by Name</label>
+          <select id="nmCountySelect"></select>
+          <small class="muted">Adds the correct 5-digit FIPS (NM = 35xxx).</small>
+        </div>
+        <div class="row-btns">
+          <button id="addNmCountyBtn" type="button" class="btn-secondary">Add County</button>
+          <button id="clearNmListBtn" type="button" class="btn-secondary">Clear List</button>
+        </div>
+
+        <div style="grid-column:1/-1;">
+          <label for="nmFipsList">Selected FIPS (comma, space, or line-separated)</label>
+          <textarea id="nmFipsList" placeholder="35001, 35006, 35013"></textarea>
+          <small class="codehint">Tip: paste multiple FIPS; we’ll sanitize and de-duplicate.</small>
+        </div>
+
+        <div>
+          <label for="nmRegionLabel">Region Label (optional)</label>
+          <input id="nmRegionLabel" type="text" placeholder="e.g., Judicial District 2" />
+        </div>
+        <div>
+          <label for="nmLabelPos">Region Label Position</label>
+          <select id="nmLabelPos">
+            <option value="centroid">At Centroid</option>
+            <option value="left">Left Edge (vertical center)</option>
+          </select>
+        </div>
+        <div>
+          <label for="nmShowContext">Context</label>
+          <select id="nmShowContext">
+            <option value="on">Show Entire NM (light grey)</option>
+            <option value="off">Only Selected Counties</option>
+          </select>
+        </div>
+        <div class="row-btns">
+          <button id="renderNmRegionBtn" type="button">Render NM Region</button>
+        </div>
       </div>
     </div>
 
@@ -258,6 +306,26 @@
   let currentFips = "35001";
   const pins = [];
 
+  // ------- NM county name -> FIPS map (33 counties) -------
+  const NM_COUNTIES = [
+    ["Bernalillo", "35001"], ["Catron", "35003"], ["Chaves", "35005"], ["Cibola", "35006"],
+    ["Colfax", "35007"], ["Curry", "35009"], ["De Baca", "35011"], ["Doña Ana", "35013"],
+    ["Eddy", "35015"], ["Grant", "35017"], ["Guadalupe", "35019"], ["Harding", "35021"],
+    ["Hidalgo", "35023"], ["Lea", "35025"], ["Lincoln", "35027"], ["Los Alamos", "35028"],
+    ["Luna", "35029"], ["McKinley", "35031"], ["Mora", "35033"], ["Otero", "35035"],
+    ["Quay", "35037"], ["Rio Arriba", "35039"], ["Roosevelt", "35041"], ["Sandoval", "35043"],
+    ["San Juan", "35045"], ["San Miguel", "35047"], ["Santa Fe", "35049"], ["Sierra", "35051"],
+    ["Socorro", "35053"], ["Taos", "35055"], ["Torrance", "35057"], ["Union", "35059"],
+    ["Valencia", "35061"],
+  ];
+  const nmSelect = () => document.getElementById("nmCountySelect");
+
+  // Populate dropdown
+  document.addEventListener("DOMContentLoaded", () => {
+    const sel = nmSelect();
+    sel.innerHTML = NM_COUNTIES.map(([n,f]) => `<option value="${f}">${n} — ${f}</option>`).join("");
+  });
+
   async function loadTopo(){
     if (topoCache) return topoCache;
     topoCache = await fetch("https://cdn.jsdelivr.net/npm/us-atlas@3/counties-10m.json").then(r => r.json());
@@ -282,6 +350,7 @@
     if (!ok) alert("Please use valid 6-digit hex colors like #1E5D30.");
   }
 
+  // ---------- SINGLE county ----------
   async function renderCountyByFIPS(fips, labelText, labelPos){
     const topo = await loadTopo();
     const counties = topojson.feature(topo, topo.objects.counties);
@@ -319,6 +388,79 @@
     const [lon, lat] = d3.geoCentroid(county);
     document.getElementById("coords").textContent = `Centroid: ${lat.toFixed(6)}, ${lon.toFixed(6)}  (WGS84)`;
     document.getElementById("meta").textContent = `FIPS: ${fips}`;
+    renderPins();
+  }
+
+  // ---------- MULTI-county (NM Region) ----------
+  function parseFipsList(raw){
+    const list = (raw || "").split(/[\s,;]+/).map(s=>s.trim()).filter(Boolean);
+    // Keep only 5-digit numbers, de-duplicate
+    return Array.from(new Set(list.filter(s => /^\d{5}$/.test(s))));
+  }
+
+  async function renderNMRegion(fipsList, regionLabel, labelPos, showContext){
+    const topo = await loadTopo();
+    const counties = topojson.feature(topo, topo.objects.counties);
+    // All NM counties (state FIPS '35')
+    const nmAll = counties.features.filter(f => String(f.id).startsWith("35"));
+    const selected = nmAll.filter(f => fipsList.includes(f.id));
+
+    clearMap();
+    const box = document.getElementById("map");
+    const W = box.clientWidth, H = box.clientHeight;
+
+    svg = d3.select("#map").append("svg")
+      .attr("viewBox", `0 0 ${W} ${H}`)
+      .attr("role","img")
+      .attr("aria-label","New Mexico counties");
+
+    if (selected.length === 0){
+      const msg = "No NM counties selected.";
+      svg.append("text").attr("x", W/2).attr("y", H/2).attr("text-anchor","middle").attr("fill", "#ba0c2f").attr("font-weight", 800).text(msg);
+      document.getElementById("coords").textContent = "Centroid: —";
+      document.getElementById("meta").textContent = "NM Region: —";
+      return;
+    }
+
+    // Fit to selected collection (or entire NM if context is on, so pins remain usable statewide)
+    const fitCollection = (showContext === "on")
+      ? { type:"FeatureCollection", features: nmAll }
+      : { type:"FeatureCollection", features: selected };
+
+    projection = d3.geoAlbersUsa(); projection.fitSize([W, H], fitCollection);
+    path = d3.geoPath(projection);
+
+    // Draw NM context first (light grey)
+    if (showContext === "on"){
+      svg.append("g").selectAll("path")
+        .data(nmAll)
+        .enter().append("path")
+        .attr("class","county context")
+        .attr("d", d => path(d));
+    }
+
+    // Draw selected counties on top (your fill + black outlines)
+    svg.append("g").selectAll("path")
+      .data(selected)
+      .enter().append("path")
+      .attr("class","county selected")
+      .attr("d", d => path(d));
+
+    // Region label
+    const label = regionLabel && regionLabel.trim() ? regionLabel.trim() : `NM Region (${fipsList.length} counties)`;
+    if (labelPos === "centroid"){
+      const [cx, cy] = path.centroid({ type:"FeatureCollection", features: selected });
+      svg.append("text").attr("class","region-label").attr("x", cx).attr("y", cy).attr("text-anchor","middle").attr("dy",".35em").text(label);
+    } else {
+      const cy = path.centroid({ type:"FeatureCollection", features: selected })[1];
+      svg.append("text").attr("class","region-label").attr("x", 16).attr("y", cy).attr("text-anchor","start").attr("dy",".35em").text(label);
+    }
+
+    // Meta + coords (use geographic centroid of selection)
+    const [lon, lat] = d3.geoCentroid({ type:"FeatureCollection", features: selected });
+    document.getElementById("coords").textContent = `Selection centroid: ${lat.toFixed(6)}, ${lon.toFixed(6)}  (WGS84)`;
+    document.getElementById("meta").textContent = `NM Region FIPS: ${fipsList.join(", ")}`;
+
     renderPins();
   }
 
@@ -413,7 +555,7 @@
     return { display_name: data.display_name || "(no address)", address: data.address || {} };
   }
 
-  // UI wiring
+  // UI wiring — single county
   document.getElementById("renderBtn").addEventListener("click", () => {
     const fips = document.getElementById("fips").value.trim();
     const labelText = document.getElementById("labelText").value.trim();
@@ -428,6 +570,30 @@
   document.getElementById("downloadBtn").addEventListener("click", () => downloadSVG(`county_${currentFips}.svg`));
   document.getElementById("applyColorsBtn").addEventListener("click", () => { applyAllColorsFromInputs(); renderPins(); });
 
+  // UI wiring — NM Region Builder
+  document.getElementById("addNmCountyBtn").addEventListener("click", () => {
+    const fips = nmSelect().value;
+    const box = document.getElementById("nmFipsList");
+    const list = parseFipsList(box.value);
+    if (!list.includes(fips)) list.push(fips);
+    box.value = list.join(", ");
+  });
+  document.getElementById("clearNmListBtn").addEventListener("click", () => {
+    document.getElementById("nmFipsList").value = "";
+  });
+  document.getElementById("renderNmRegionBtn").addEventListener("click", () => {
+    const fipsList = parseFipsList(document.getElementById("nmFipsList").value).filter(f => f.startsWith("35"));
+    if (fipsList.length === 0){
+      alert("Add at least one New Mexico county (FIPS starts with 35).");
+      return;
+    }
+    const label = document.getElementById("nmRegionLabel").value;
+    const pos = document.getElementById("nmLabelPos").value;
+    const ctx = document.getElementById("nmShowContext").value;
+    renderNMRegion(fipsList, label, pos, ctx);
+  });
+
+  // Pins editor
   document.getElementById("geocodeBtn").addEventListener("click", async () => {
     const addr = document.getElementById("pinAddress").value.trim();
     if (!addr) { alert("Please enter an address to geocode."); return; }
@@ -476,6 +642,83 @@
     renderCountyByFIPS(fips, label, pos);
   })();
   </script>
+  <!-- ====== Quick Links Section ====== -->
+<section class="quick-links">
+  <h2 class="ql-title">Explore More</h2>
+  <div class="ql-grid">
+    <!-- 1) Demographics -->
+    <a class="ql-card" href="https://koushiktripurari19986.wordpress.com" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">👥</span>
+      <span class="ql-text">
+        <span class="ql-heading">Demographics</span>
+        <span class="ql-sub">Population, age, geography</span>
+      </span>
+    </a>
+
+    <!-- 2) Diagnoses counts -->
+    <a class="ql-card" href="https://public.tableau.com/app/profile/koushik.tripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🧾</span>
+      <span class="ql-text">
+        <span class="ql-heading">Diagnoses Counts</span>
+        <span class="ql-sub">State & region breakdowns</span>
+      </span>
+    </a>
+
+    <!-- 3) Service counts -->
+    <a class="ql-card" href="https://github.com/koushiktripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🩺</span>
+      <span class="ql-text">
+        <span class="ql-heading">Service Counts</span>
+        <span class="ql-sub">BHOP, IOP, Crisis, Residential</span>
+      </span>
+    </a>
+
+    <!-- 4) Crisis data -->
+    <a class="ql-card" href="https://prezi.com/view/CHW-CHR-Guide-Registration-Steps" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">📟</span>
+      <span class="ql-text">
+        <span class="ql-heading">Crisis Data</span>
+        <span class="ql-sub">ED visits, mobile crisis, CTC</span>
+      </span>
+    </a>
+
+    <!-- 5) County maps: CCBHC, CTC & Crisis -->
+    <a class="ql-card" href="https://www.linkedin.com/in/koushiktripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🗺️</span>
+      <span class="ql-text">
+        <span class="ql-heading">County Maps — CCBHC, CTC & Crisis</span>
+        <span class="ql-sub">Coverage & access by county</span>
+      </span>
+    </a>
+  </div>
+</section>
+
+<!-- ====== Minimal Styles ====== -->
+<style>
+  :root{
+    --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb;
+    --ql-card:#f9fafb; --ql-card-hover:#eef2ff; --ql-border:#e5e7eb;
+    --ql-shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04);
+  }
+  .quick-links{margin:24px 0; padding:8px 0}
+  .ql-title{margin:0 0 12px; font:600 18px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial; color:var(--ql-ink)}
+  .ql-grid{
+    display:grid; gap:12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .ql-card{
+    display:flex; gap:12px; align-items:center;
+    padding:14px 16px; border-radius:14px;
+    background:var(--ql-card); border:1px solid var(--ql-border);
+    text-decoration:none; color:var(--ql-ink);
+    box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .ql-card:hover{ transform:translateY(-2px); background:var(--ql-card-hover); border-color:#c7d2fe }
+  .ql-emoji{font-size:22px}
+  .ql-text{display:flex; flex-direction:column}
+  .ql-heading{font-weight:700}
+  .ql-sub{font-size:12px; color:var(--ql-sub)}
+</style>
+
 </body>
 </html>
-    
