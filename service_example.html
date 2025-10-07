@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>NM Service Calculator (Tidy Sheets)</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --bg:#f8fafc; --line:#e5e7eb;
+    --teal:#0ea5a6; --blue:#2563eb; --green:#059669;
+    --nmPct:#0b7;  /* % accent colors (not fills) */
+    --brPct:#007a86;
+  }
+  html,body{margin:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--ink)}
+  header{padding:18px 20px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:clamp(18px,2.8vw,24px)}
+  main{padding:16px 20px;max-width:1200px;margin:auto}
+  .grid{display:grid;gap:14px}
+  @media(min-width:1000px){.grid.two{grid-template-columns:1fr 1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+  label{font-size:14px;color:var(--ink)}
+  input[type=file],input[type=text],input[type=color],select,button{border:1px solid var(--line);border-radius:10px}
+  input[type=file]{display:block;margin:.35rem 0 1rem}
+  input[type=text],input[type=color],select{padding:8px 10px}
+  button{padding:10px 14px;background:#fff;cursor:pointer}
+  button.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .pill{display:inline-block;padding:4px 8px;background:#eef7f8;border:1px solid #d9eef0;color:#0c6470;border-radius:999px;font-size:12px}
+  .muted{color:var(--muted);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px;background:#fff}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line)}
+  th{background:#fcfcfd;text-align:left}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .banner{display:flex;align-items:center;gap:8px;font-weight:600}
+  .ico{display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:6px;font-size:12px;color:#fff}
+  .ico.nm{background:var(--green)}
+  .ico.br{background:var(--blue)}
+  .thead-nm{background:#ecfdf5}
+  .thead-br{background:#eef2ff}
+  .badge{font-size:12px;border:1px solid var(--line);padding:2px 6px;border-radius:999px;background:#f8fafc}
+  .grp-strong{font-weight:800}
+  .grp-mild{font-weight:600}
+  .pct-nm{color:var(--nmPct);font-weight:700}
+  .pct-br{color:var(--brPct);font-weight:700}
+  #tblDetail tbody tr:nth-child(odd){background:#fafbfc}
+  .tiny{font-size:12px}
+  .color-input{width:110px}
+</style>
+</head>
+<body>
+<header>
+  <h1>New Mexico Service Calculator</h1>
+  <div class="muted">Expects tidy sheets like your “All Services” and “Client Counts BR”. Two-decimal outputs.</div>
+</header>
+
+<main class="grid">
+  <section class="card">
+    <div class="grid two">
+      <div>
+        <label><strong>Upload Excel workbook</strong></label>
+        <input id="fileExcel" type="file" accept=".xlsx,.xls"/>
+        <div class="muted">Detected sheets: <span id="sheetsList">—</span></div>
+      </div>
+      <div>
+        <label><strong>Sheet names</strong> (edit to match your tabs)</label>
+        <div class="grid two" style="gap:10px">
+          <div>
+            <div class="muted">Numerator (default: <em>All Services</em>)</div>
+            <input id="numSheet" type="text" placeholder="All Services"/>
+          </div>
+          <div>
+            <div class="muted">Denominator (default: <em>Client Counts BR</em>)</div>
+            <input id="denSheet" type="text" placeholder="Client Counts BR"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Behavioral Region (comparison target)</label><br/>
+        <select id="regionSel"><option>(load workbook)</option></select>
+      </div>
+      <div><button class="primary" id="btnLoad">Load workbook</button></div>
+      <div><button id="btnBuild">Build Tables</button></div>
+      <div class="pill" id="status">Waiting for file…</div>
+    </div>
+
+    <!-- optional % accent colors (not the column fills) -->
+    <div class="row" style="margin-top:6px">
+      <div>
+        <label>Statewide % accent</label><br/>
+        <input id="nmColor" type="color" value="#00bb77" />
+      </div>
+      <div>
+        <label>BR % accent</label><br/>
+        <input id="brColor" type="color" value="#007a86" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 1) 5-row summary -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="banner"><span class="ico nm">NM</span> New Mexico vs <span class="ico br">BR</span> <span id="brName1" class="badge">—</span></div>
+      <div class="muted">Two decimals</div>
+    </div>
+    <table id="tblSummary">
+      <thead><tr><th>Service Type</th><th>New Mexico (%)</th><th id="thBR1">Behavioral Region (%)</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 2) Workforce table -->
+  <section class="card">
+    <div class="banner"><span class="ico br">BR</span> Workforce — New Mexico vs <span id="brNameWork" class="badge">—</span></div>
+    <table id="tblWorkforce">
+      <thead>
+        <tr>
+          <th>Workforce Category</th>
+          <th>New Mexico (%)</th>
+          <th id="thBRWork">Behavioral Region (%)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 3) Detailed (counts + %) with HD download and 6-hex column fills -->
+  <section class="card" id="detailCard">
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <div class="banner">
+        <span class="ico nm">NM</span> Statewide
+        <span class="ico br">BR</span> <span id="brName2" class="badge">—</span>
+      </div>
+      <div class="row" style="align-items:center">
+        <div class="muted">Beneficiary N &amp; %</div>
+        <button id="btnSaveImage" style="margin-left:10px">Download Table (HD PNG)</button>
+      </div>
+    </div>
+
+    <!-- Apply Colors bar (must be # + 6 hex digits) -->
+    <div class="row" style="margin:10px 0; align-items:center">
+      <div class="tiny muted">Column fill color (format: <code>#RRGGBB</code>)</div>
+      <div>
+        <label class="tiny">Statewide (NM) bg</label><br/>
+        <input id="nmBgHex" class="color-input" type="text" inputmode="text"
+               placeholder="#0AC3DD" maxlength="7" value="#0AC3DD"/>
+      </div>
+      <div>
+        <label class="tiny">BR bg</label><br/>
+        <input id="brBgHex" class="color-input" type="text" inputmode="text"
+               placeholder="#F7B622" maxlength="7" value="#F7B622"/>
+      </div>
+      <div style="align-self:flex-end">
+        <button id="btnApplyColors">Apply Colors</button>
+      </div>
+      <div class="tiny muted">Leave a field blank to clear custom color.</div>
+    </div>
+
+    <table id="tblDetail">
+      <thead>
+        <tr>
+          <th rowspan="2">Service</th>
+          <th class="thead-nm col-nm" colspan="2">Statewide (New Mexico)</th>
+          <th class="thead-br col-br" colspan="2"><span id="thBR2">Behavioral Region</span></th>
+        </tr>
+        <tr>
+          <th class="thead-nm col-nm">Beneficiary N</th><th class="thead-nm col-nm">%</th>
+          <th class="thead-br col-br">Beneficiary N</th><th class="thead-br col-br">%</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const $all = s => Array.from(document.querySelectorAll(s));
+const status = m => $('#status').textContent = m;
+const to2 = v => (isFinite(v) ? Number(v).toFixed(2) : '0.00');
+function cleanNum(x){
+  if (x === null || x === undefined) return 0;
+  if (typeof x === 'number' && isFinite(x)) return x;
+  const s = String(x).replace(/[\s,"]/g,'').replace(/\n/g,'').trim();
+  const m = s.match(/-?\d+(\.\d+)?/);
+  return m ? Number(m[0]) : 0;
+}
+/* STRICT 6-hex validator */
+function isSixHex(str){ return /^#[0-9A-Fa-f]{6}$/.test(str); }
+/* black/white text for contrast */
+function textColorFor(hex6){
+  const h = hex6.replace('#','');
+  const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+  const L = (0.2126*r + 0.7152*g + 0.0722*b)/255;
+  return (L > 0.6) ? '#000000' : '#FFFFFF';
+}
+
+let workbook=null, SHEETS=[];
+let NUM=[], DEN=[];
+let REGIONS=[];
+
+/* tidy parsers */
+function parseNumeratorTidy(rows){
+  const out=[];
+  for(const r of rows){
+    const service = (r.Service ?? r.service ?? '').toString().trim();
+    const br = (r.behavioral_region_names ?? r.Behavioral_Region_Names ?? r.region ?? r.Region ?? '').toString().trim();
+    const cnt = cleanNum(r['Count Clients'] ?? r.Count_Clients ?? r.Count ?? r.n);
+    if(service && br) out.push({service, br, count: cnt});
+  }
+  return out;
+}
+function parseDenominatorTidy(rows){
+  const out=[];
+  for(const r of rows){
+    const br = (r.behavioral_region_names ?? r.Behavioral_Region_Names ?? r.Region ?? r.region ?? '').toString().trim();
+    const cnt = cleanNum(r['Count Clients'] ?? r.Count_Clients ?? r['Beneficiary N'] ?? r.Beneficiaries ?? r.Count ?? r.n);
+    if(br) out.push({br, n: cnt});
+  }
+  return out;
+}
+function wsToJSON(ws){ return XLSX.utils.sheet_to_json(ws,{defval:null,raw:true}); }
+
+/* load workbook */
+$('#fileExcel').addEventListener('change', async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  status('Reading file…');
+  const buf = await f.arrayBuffer();
+  workbook = XLSX.read(buf,{type:'array'});
+  SHEETS = workbook.SheetNames||[];
+  $('#sheetsList').textContent = SHEETS.join(', ')||'—';
+  $('#numSheet').value = SHEETS.find(s=>/all\s*services?/i.test(s)) || 'All Services';
+  $('#denSheet').value = SHEETS.find(s=>/client\s*counts?\s*br/i.test(s)) || 'Client Counts BR';
+  status('File loaded. Click “Load workbook”.');
+});
+
+function loadSheets(){
+  if(!workbook){ alert('Upload a workbook first.'); return; }
+  const ns = ($('#numSheet').value||'').trim();
+  const ds = ($('#denSheet').value||'').trim();
+  const wsNum = workbook.Sheets[ns];
+  const wsDen = workbook.Sheets[ds];
+  if(!wsNum || !wsDen){ alert('Could not find one or both sheets.'); return; }
+
+  NUM = parseNumeratorTidy(wsToJSON(wsNum));
+  DEN = parseDenominatorTidy(wsToJSON(wsDen));
+
+  REGIONS = Array.from(new Set(DEN.map(d=>d.br))).sort((a,b)=>{
+    const na=+String(a).replace(/\D+/g,''), nb=+String(b).replace(/\D+/g,'');
+    if(isFinite(na)&&isFinite(nb)) return na-nb;
+    return String(a).localeCompare(String(b));
+  });
+  $('#regionSel').innerHTML = REGIONS.map(r=>`<option value="${r}">${r}</option>`).join('');
+  status(`Loaded numerators: ${NUM.length.toLocaleString()} | denominators: ${DEN.length.toLocaleString()}`);
+}
+$('#btnLoad').addEventListener('click', loadSheets);
+
+/* math helpers */
+function denomOf(br){ return (DEN.find(d=>d.br===br)||{n:0}).n; }
+function sumCount(service, br){
+  return NUM.filter(r=>r.service===service && r.br===br).reduce((a,b)=>a+(b.count||0),0);
+}
+function pct(service, br){
+  const den=denomOf(br), num=sumCount(service, br);
+  return den ? (num/den*100) : 0;
+}
+
+/* summary/workforce lists */
+const KEY5 = ['Recovery Services','BHOP','IntOutServ','Crisis_Services','ResidentialInp'];
+const LABELS5 = {
+  'Recovery Services':'Recovery Services',
+  'BHOP':'Behavioral Health Outpatient Services',
+  'IntOutServ':'Intensive Outpatient Services',
+  'Crisis_Services':'Crisis Services',
+  'ResidentialInp':'Residential and Inpatient Services'
+};
+const WORK_KEYS = [
+  {key:'OP_Prov_BHPrescribers', label:'Behavioral Health Prescribers'},
+  {key:'OP_Prov_PrimaryCare',    label:'Primary Care Clinicians'},
+  {key:'OP_Prov_IndNonIndLicPsyPrac', label:'Independently & Non-Independently Licensed Psychotherapy Practitioners'},
+  {key:'OP_Prov_DedSubUsePra', label:'Dedicated Substance Use Practitioners'}
+];
+const ORDER = [
+  {label:'Recovery Services', key:'Recovery Services', strong:true, members:["RS_PSW", "RS_CCSS", "RS_PSR", "RS_CSW", "RS_FSW", "RS_CHW", "RS_BMS", "RS_BT"]},
+  {label:'BHOP Services', key:'BHOP', strong:true, members:[]},
+  {label:'BH Workforce', key:'BHOP_Workforce', mild:true, members:[]},
+  {label:'BH-Prescribers', key:'OP_Prov_BHPrescribers', mild:true, members:["OP_Prov_Psychiatrist", "OP_Prov_PsyNursePract", "OP_Prov_PrescPsychologist"]},
+  {label:'PrimaryCare', key:'OP_Prov_PrimaryCare', mild:true, members:[]},
+  {label:'Independently and Non-Independently Licensed Psychotherapy Practitioners', key:'OP_Prov_IndNonIndLicPsyPrac', mild:true,
+    members:["OP_Prov_Psychologist", "OP_Prov_LCSWLISW", "OP_Prov_LPCC", "OP_Prov_LPAT", "OP_Prov_LMFT", "OP_Prov_LMSW", "OP_Prov_LMHC", "OP_Prov_LAMFT"]},
+  {label:'Dedicated Substance Use Practitioners', key:'OP_Prov_DedSubUsePra', mild:true, members:["OP_Prov_LADAC", "OP_Prov_LSAA", "OP_Prov_CADAC"]},
+  {label:'Intensive Outpatient Services', key:'IntOutServ', strong:true, members:["IntOutServ_IOP", "IntOutServ_PartialHosp", "IntOutServ_ACT", "IntOutServ_MST", "IntOutServ_FFT", "IntOutServ_HEDIS"]},
+  {label:'Crisis Services', key:'Crisis_Services', strong:true, members:["CS_ED", "CS_UrgentCare", "CS_MobileCrisis_CTC", "CS_Crisis_Intervention"]},
+];
+
+/* build tables */
+function buildTables(){
+  if(!NUM.length||!DEN.length){ alert('Load workbook & sheets first.'); return; }
+  const region = $('#regionSel').value;
+
+  document.documentElement.style.setProperty('--nmPct', $('#nmColor').value);
+  document.documentElement.style.setProperty('--brPct', $('#brColor').value);
+
+  $('#brName1').textContent = region;
+  $('#brName2').textContent = region;
+  $('#brNameWork').textContent = region;
+  $('#thBR1').textContent   = `${region} (%)`;
+  $('#thBR2').textContent   = `Behavioral Region (${region})`;
+  $('#thBRWork').textContent= `${region} (%)`;
+
+  const NM_DEN = denomOf('New Mexico');
+  const BR_DEN = denomOf(region);
+
+  // summary
+  const tb1 = $('#tblSummary tbody'); tb1.innerHTML='';
+  KEY5.forEach(key=>{
+    tb1.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${LABELS5[key]}</td>
+        <td class="num">${to2(pct(key,'New Mexico'))}</td>
+        <td class="num">${to2(pct(key,region))}</td>
+      </tr>
+    `);
+  });
+
+  // workforce
+  const tbW = $('#tblWorkforce tbody'); tbW.innerHTML='';
+  WORK_KEYS.forEach(({key,label})=>{
+    tbW.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${label}</td>
+        <td class="num">${to2(pct(key,'New Mexico'))}</td>
+        <td class="num">${to2(pct(key,region))}</td>
+      </tr>
+    `);
+  });
+
+  // detail
+  const tb3 = $('#tblDetail tbody'); tb3.innerHTML='';
+  function rowHTML(label, nmN, nmP, brN, brP, cls=''){
+    return `
+      <tr class="${cls}">
+        <td>${label}</td>
+        <td class="num col-nm">${Number(nmN||0).toLocaleString()}</td>
+        <td class="num pct-nm col-nm">${to2(nmP)}%</td>
+        <td class="num col-br">${Number(brN||0).toLocaleString()}</td>
+        <td class="num pct-br col-br">${to2(brP)}%</td>
+      </tr>
+    `;
+  }
+  function getCountsFor(key, members){
+    const nmN = sumCount(key,'New Mexico');
+    const brN = sumCount(key,region);
+    if ((nmN||brN) || !members || members.length===0) return {nmN, brN};
+    return {
+      nmN: members.reduce((a,k)=>a+sumCount(k,'New Mexico'),0),
+      brN: members.reduce((a,k)=>a+sumCount(k,region),0)
+    };
+  }
+  ORDER.forEach(block=>{
+    const cls = block.strong ? 'grp-strong' : (block.mild ? 'grp-mild' : '');
+    const {nmN, brN} = getCountsFor(block.key, block.members);
+    const nmP = NM_DEN ? (nmN/NM_DEN*100) : 0;
+    const brP = BR_DEN ? (brN/BR_DEN*100) : 0;
+    tb3.insertAdjacentHTML('beforeend', rowHTML(block.label, nmN, nmP, brN, brP, cls));
+    (block.members||[]).forEach(k=>{
+      const nm = sumCount(k,'New Mexico');
+      const br = sumCount(k,region);
+      const nmPct = NM_DEN ? (nm/NM_DEN*100) : 0;
+      const brPct = BR_DEN ? (br/BR_DEN*100) : 0;
+      tb3.insertAdjacentHTML('beforeend', rowHTML(k, nm, nmPct, br, brPct));
+    });
+  });
+
+  // mark headers for column fills
+  $('#tblDetail thead tr:nth-child(1) th:nth-child(2)').classList.add('col-nm');
+  $('#tblDetail thead tr:nth-child(1) th:nth-child(3)').classList.add('col-br');
+  $('#tblDetail thead tr:nth-child(2) th:nth-child(1)').classList.add('col-nm');
+  $('#tblDetail thead tr:nth-child(2) th:nth-child(3)').classList.add('col-br');
+
+  $('#tblDetail thead tr:nth-child(2) th:nth-child(1)').textContent = `Beneficiary N=${Number(NM_DEN||0).toLocaleString()}`;
+  $('#tblDetail thead tr:nth-child(2) th:nth-child(3)').textContent = `Beneficiary N=${Number(BR_DEN||0).toLocaleString()}`;
+
+  // apply the defaults immediately
+  applyBgColors();
+  status('Tables updated ✓');
+}
+$('#btnLoad').addEventListener('click', loadSheets);
+$('#btnBuild').addEventListener('click', buildTables);
+
+/* live % accent updates */
+$('#nmColor').addEventListener('input', ()=>document.documentElement.style.setProperty('--nmPct', $('#nmColor').value));
+$('#brColor').addEventListener('input', ()=>document.documentElement.style.setProperty('--brPct', $('#brColor').value));
+
+/* PNG export */
+async function saveDetailTableAsPNG(){
+  const table = document.getElementById('tblDetail');
+  if(!table){ alert('Build the tables first.'); return; }
+  const scale = Math.max(2, Math.min(3, (window.devicePixelRatio || 1) * 2));
+  const prev = table.style.backgroundColor;
+  table.style.backgroundColor = '#ffffff';
+  try{
+    const canvas = await html2canvas(table, {backgroundColor:'#ffffff', scale, useCORS:true, logging:false});
+    table.style.backgroundColor = prev || '';
+    const link = document.createElement('a');
+    const region = ($('#regionSel').value || 'BR').replace(/\s+/g,'_');
+    link.download = `services_detail_${region}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link); link.click(); link.remove();
+  }catch(e){
+    table.style.backgroundColor = prev || '';
+    console.error(e); alert('Could not render the image.');
+  }
+}
+document.getElementById('btnSaveImage').addEventListener('click', saveDetailTableAsPNG);
+
+/* -------- Column fill application (6-digit hex required) -------- */
+function applyOneSide(selector, hex6){
+  $all(selector).forEach(el=>{
+    if(!hex6){
+      el.style.backgroundColor = '';
+      el.style.color = '';
+      return;
+    }
+    if(!isSixHex(hex6)){ return; }     // enforce #RRGGBB
+    el.style.backgroundColor = hex6;
+    el.style.color = textColorFor(hex6);
+  });
+}
+function applyBgColors(){
+  const nmHex = ($('#nmBgHex').value || '').trim();
+  const brHex = ($('#brBgHex').value || '').trim();
+  applyOneSide('#tblDetail .col-nm', nmHex);
+  applyOneSide('#tblDetail .col-br', brHex);
+}
+document.getElementById('btnApplyColors').addEventListener('click', applyBgColors);
+</script>
+<!-- ====== Quick Links Section ====== -->
+<section class="quick-links">
+  <h2 class="ql-title">Explore More</h2>
+  <div class="ql-grid">
+    <!-- 1) Demographics -->
+    <a class="ql-card" href="https://koushiktripurari19986.wordpress.com" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">👥</span>
+      <span class="ql-text">
+        <span class="ql-heading">Demographics</span>
+        <span class="ql-sub">Population, age, geography</span>
+      </span>
+    </a>
+
+    <!-- 2) Diagnoses counts -->
+    <a class="ql-card" href="https://public.tableau.com/app/profile/koushik.tripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🧾</span>
+      <span class="ql-text">
+        <span class="ql-heading">Diagnoses Counts</span>
+        <span class="ql-sub">State & region breakdowns</span>
+      </span>
+    </a>
+
+    <!-- 3) Service counts -->
+    <a class="ql-card" href="https://github.com/koushiktripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🩺</span>
+      <span class="ql-text">
+        <span class="ql-heading">Service Counts</span>
+        <span class="ql-sub">BHOP, IOP, Crisis, Residential</span>
+      </span>
+    </a>
+
+    <!-- 4) Crisis data -->
+    <a class="ql-card" href="https://prezi.com/view/CHW-CHR-Guide-Registration-Steps" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">📟</span>
+      <span class="ql-text">
+        <span class="ql-heading">Crisis Data</span>
+        <span class="ql-sub">ED visits, mobile crisis, CTC</span>
+      </span>
+    </a>
+
+    <!-- 5) County maps: CCBHC, CTC & Crisis -->
+    <a class="ql-card" href="https://www.linkedin.com/in/koushiktripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🗺️</span>
+      <span class="ql-text">
+        <span class="ql-heading">County Maps — CCBHC, CTC & Crisis</span>
+        <span class="ql-sub">Coverage & access by county</span>
+      </span>
+    </a>
+  </div>
+</section>
+
+<!-- ====== Minimal Styles ====== -->
+<style>
+  :root{
+    --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb;
+    --ql-card:#f9fafb; --ql-card-hover:#eef2ff; --ql-border:#e5e7eb;
+    --ql-shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04);
+  }
+  .quick-links{margin:24px 0; padding:8px 0}
+  .ql-title{margin:0 0 12px; font:600 18px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial; color:var(--ql-ink)}
+  .ql-grid{
+    display:grid; gap:12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .ql-card{
+    display:flex; gap:12px; align-items:center;
+    padding:14px 16px; border-radius:14px;
+    background:var(--ql-card); border:1px solid var(--ql-border);
+    text-decoration:none; color:var(--ql-ink);
+    box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .ql-card:hover{ transform:translateY(-2px); background:var(--ql-card-hover); border-color:#c7d2fe }
+  .ql-emoji{font-size:22px}
+  .ql-text{display:flex; flex-direction:column}
+  .ql-heading{font-weight:700}
+  .ql-sub{font-size:12px; color:var(--ql-sub)}
+</style>
+
+</body>
+</html>
