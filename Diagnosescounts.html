@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Diagnosis % Calculator — Explicit “New Mexico” rows</title>
+
+<!-- Excel reader -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+  :root{ --ink:#2f3134; --bg:#f7f8fa; --line:#e5e7eb; --accent:#0c8a96; }
+  html,body{margin:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--ink);background:var(--bg)}
+  header{padding:18px 20px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:clamp(18px,2.8vw,24px)}
+  main{padding:16px 20px;max-width:1200px;margin:auto}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0}
+  .row{display:grid;gap:14px}
+  @media(min-width:900px){.row{grid-template-columns:1fr 1fr}}
+  label{font-size:14px;color:#444}
+  input[type=file]{display:block;margin:.35rem 0 1rem}
+  input[type=text]{padding:8px 10px;border:1px solid var(--line);border-radius:10px;width:100%}
+  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+  select{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  button{padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pill{display:inline-block;padding:4px 8px;background:#eef7f8;border:1px solid #d9eef0;color:#0c6470;border-radius:999px;font-size:12px}
+  .muted{color:#6b7280;font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line)}
+  th{background:#fcfcfd;text-align:left}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .note{font-size:13px;color:#555}
+  .code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f8fafc;border:1px solid #e5e7eb;padding:2px 6px;border-radius:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Diagnosis % Calculator — Explicit “New Mexico” rows</h1>
+  <div class="muted">NM % comes only from rows where Behavioral Region Name is exactly <em>New Mexico</em> (case-insensitive), in both numerator and denominator.</div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="row">
+      <div>
+        <label><strong>Upload Excel workbook</strong><br><span class="muted">.xlsx preferred (CSV works too)</span></label>
+        <input id="fileExcel" type="file" accept=".xlsx,.xls,.csv" />
+        <div class="muted">Detected sheets: <span id="sheetsList">—</span></div>
+      </div>
+      <div>
+        <label><strong>Sheet names</strong> (type the tab names from your workbook)</label>
+        <div class="row" style="grid-template-columns:1fr 1fr; gap:10px">
+          <div>
+            <div class="muted">Numerators (diagnosis counts)</div>
+            <input id="sheetNumerators" type="text" placeholder="e.g., Numerators" />
+          </div>
+          <div>
+            <div class="muted">Denominators (population by BR)</div>
+            <input id="sheetDenominators" type="text" placeholder="e.g., Denominators" />
+          </div>
+        </div>
+        <div class="muted" style="margin-top:6px">
+          Expected columns:<br>
+          <span class="code">Diagnoses</span>, <span class="code">stratify_18</span>, <span class="code">behavioral_region_names</span>, <span class="code">Count_Clients_diagnoses</span><br>
+          and <span class="code">Stratify_18</span>, <span class="code">Behavioral_Region_Names</span>, <span class="code">Count_Clients</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls" style="margin-top:10px">
+      <div>
+        <label>Age group</label><br>
+        <select id="ageSel">
+          <option value="<18">&lt;18</option>
+          <option value=">=18">&ge;18</option>
+        </select>
+      </div>
+      <div>
+        <label>Behavioral Region (for Top-10 ranking)</label><br>
+        <select id="regionSel"><option>(load workbook first)</option></select>
+      </div>
+      <div><button class="primary" id="btnLoad">Load workbook</button></div>
+      <div><button id="btnBuild">Build Top-10 Table</button></div>
+      <div><button id="btnDownload">Download CSV</button></div>
+      <div class="pill" id="status">Waiting for file…</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="titleBar" class="note">—</div>
+    <table id="outTable">
+      <thead>
+        <tr>
+          <th>Diagnosis</th>
+          <th>New Mexico (%)</th>
+          <th id="thRegion">Behavioral Region (%)</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  
+</main>
+
+<script>
+/* ---------- Utilities ---------- */
+const $ = s => document.querySelector(s);
+const statusPill = msg => $('#status').textContent = msg;
+const to2 = v => (isFinite(v) ? Number(v).toFixed(2) : '0.00');
+const isNM = v => String(v||'').trim().toLowerCase() === 'new mexico';
+
+/* Friendly names (extend if you need more) */
+const DIAG_NAME = {
+  'MD_AnxietyDisorder':'Anxiety Disorder',
+  'MD_AttentionDeficitDisorders':'Attention Deficit Disorders',
+  'MD_MoodDisorder':'Mood Disorder',
+  'MD_DevelopmentalDisorders':'Developmental Disorders',
+  'MD_IntSelfHarmSuicidalIdeation':'Intentional Self Harm & Suicidal Ideation',
+  'MD_ConductDisorders':'Conduct Disorders',
+  'SUD_CannabisUseDisorder':'Cannabis Use Disorder',
+  'MD_EmoDisordersChildhoodOnset':'Emotional Disorders Childhood Onset',
+  'MD_PsychoticDisorder':'Psychotic Disorder',
+  'MD_EatingDisorders':'Eating Disorders'
+};
+function prettyDiagName(k){
+  if (DIAG_NAME[k]) return DIAG_NAME[k];
+  return String(k).replace(/^(MD_|SUD_|BH_|IS_?)/,'').replace(/_/g,' ')
+                  .replace(/\b([a-z])/g, m => m.toUpperCase());
+}
+
+/* Accept many header spellings (lowercased, no spaces) */
+function norm(s){ return String(s||'').toLowerCase().replace(/[\s\-]/g,''); }
+const ALIAS = {
+  diag: ['diagnoses','dx','condition'],
+  age: ['stratify_18','stratify18','agegroup','age_group'],
+  br: ['behavioral_region_names','behavioralregionnames','behavioral_region','region','br','behavioral_region_names'],
+  numCount: ['count_clients_diagnoses','countdiagnoses','clients_dx','count','n'],
+  denAge: ['stratify_18','stratify18','agegroup','age_group'],
+  denBR: ['behavioral_region_names','behavioralregionnames','behavioral_region_names','behavioral_region','region','br'],
+  denCount: ['count_clients','clients','total_clients','denominator','count','n']
+};
+function mapRow(obj){
+  const m = {}; for(const [k,v] of Object.entries(obj)) m[norm(k)] = v; return m;
+}
+function getField(row, keys){
+  for(const k of keys){ if (k in row) return row[k]; }
+  return undefined;
+}
+
+/* ---------- File parsing ---------- */
+let workbook=null, SHEETS=[], NUM=[], DEN=[];
+
+$('#fileExcel').addEventListener('change', async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  statusPill('Reading file…');
+  const buf = await f.arrayBuffer();
+
+  if(f.name.toLowerCase().endsWith('.csv')){
+    const text = new TextDecoder().decode(new Uint8Array(buf));
+    const wb = XLSX.read(text, {type:'string'});
+    workbook = wb;
+  }else{
+    workbook = XLSX.read(buf, {type:'array'});
+  }
+
+  SHEETS = workbook.SheetNames || [];
+  $('#sheetsList').textContent = SHEETS.join(', ') || '—';
+
+  // guesses
+  $('#sheetNumerators').value = SHEETS.find(s=>/num|diagnos/i.test(s)) || SHEETS[0] || '';
+  $('#sheetDenominators').value = SHEETS.find(s=>/den|pop|client|total/i.test(s)) || SHEETS[1] || SHEETS[0] || '';
+  statusPill('File loaded. Choose sheet names and click “Load workbook”.');
+});
+
+function sheetToObjs(ws){
+  // defval preserves blanks; raw keeps numbers as numbers
+  const rows = XLSX.utils.sheet_to_json(ws, {defval:null, raw:true});
+  return rows.map(mapRow);
+}
+
+function loadSheets(){
+  if(!workbook){ alert('Upload an Excel first.'); return; }
+  const numName = ($('#sheetNumerators').value||'').trim();
+  const denName = ($('#sheetDenominators').value||'').trim();
+  const wsNum = workbook.Sheets[numName] || workbook.Sheets[SHEETS[0]];
+  const wsDen = workbook.Sheets[denName] || workbook.Sheets[SHEETS[1] || SHEETS[0]];
+  if(!wsNum || !wsDen){ alert('Could not find the specified sheet(s).'); return; }
+
+  // Numerators normalize
+  NUM = sheetToObjs(wsNum).map(r=>{
+    return {
+      Diagnoses:      getField(r, ALIAS.diag),
+      stratify_18:    getField(r, ALIAS.age),
+      br:             getField(r, ALIAS.br),
+      CountDX: Number(getField(r, ALIAS.numCount) ?? 0)
+    };
+  }).filter(x=>x.Diagnoses && x.stratify_18 && x.br);
+
+  // Denominators normalize
+  DEN = sheetToObjs(wsDen).map(r=>{
+    return {
+      Stratify_18:            getField(r, ALIAS.denAge),
+      Behavioral_Region:      getField(r, ALIAS.denBR),
+      CountClients: Number(getField(r, ALIAS.denCount) ?? 0)
+    };
+  }).filter(x=>x.Stratify_18 && x.Behavioral_Region);
+
+  // populate regions (exclude "New Mexico" from the dropdown)
+  const regions = Array.from(new Set(
+    DEN.map(r=>String(r.Behavioral_Region).trim()).filter(v=>!isNM(v))
+  )).sort((a,b)=> {
+    const na=+String(a).replace(/\D+/g,''), nb=+String(b).replace(/\D+/g,'');
+    if(isFinite(na) && isFinite(nb)) return na-nb;
+    return String(a).localeCompare(String(b));
+  });
+
+  $('#regionSel').innerHTML = regions.map(r=>`<option value="${r}">${r}</option>`).join('') || '<option>(no BRs found)</option>';
+  statusPill(`Loaded ${NUM.length.toLocaleString()} numerator rows & ${DEN.length.toLocaleString()} denominator rows.`);
+}
+$('#btnLoad').addEventListener('click', loadSheets);
+
+/* ---------- Core calculation (explicit NM rows) ---------- */
+function buildTable(){
+  if(!NUM.length || !DEN.length){ alert('Load workbook & sheets first.'); return; }
+  const age = $('#ageSel').value;
+  const region = $('#regionSel').value;
+  if(!region){ alert('Pick a region'); return; }
+
+  // Denominators for this age
+  let nmDenom = 0, brDenom = 0;
+  DEN.forEach(r=>{
+    if(String(r.Stratify_18).trim() !== age) return;
+    if(isNM(r.Behavioral_Region)) nmDenom += Number(r.CountClients||0);
+    if(String(r.Behavioral_Region).trim() === region) brDenom += Number(r.CountClients||0);
+  });
+
+  // Numerators for this age
+  const nmNum = new Map(); // key -> count (only rows with BR == New Mexico)
+  const brNum = new Map(); // key -> count (only rows with BR == selected region)
+
+  NUM.forEach(r=>{
+    if(String(r.stratify_18).trim() !== age) return;
+
+    let key = String(r.Diagnoses).trim();
+    if(key === 'IS') key = 'MD_IntSelfHarmSuicidalIdeation';  // merge short into long
+
+    const c = Number(r.CountDX || 0);
+    if(isNM(r.br)) nmNum.set(key, (nmNum.get(key)||0) + c);
+    if(String(r.br).trim() === region) brNum.set(key, (brNum.get(key)||0) + c);
+  });
+
+  // Build list keyed by BR %, then take Top 10 and map NM % for same keys
+  const rowsAll = [];
+  for(const [key, brCount] of brNum.entries()){
+    const brPct = brDenom ? (brCount / brDenom * 100) : 0;
+    const nmPct = nmDenom ? ((nmNum.get(key)||0) / nmDenom * 100) : 0;
+    rowsAll.push({ key, label: prettyDiagName(key), brPct, nmPct });
+  }
+  rowsAll.sort((a,b)=> b.brPct - a.brPct);
+  const top10 = rowsAll.slice(0,10);
+
+  // Paint
+  $('#titleBar').innerHTML =
+    `<strong>Age:</strong> ${age}
+     &nbsp;&nbsp; <strong>Region:</strong> ${region}
+     &nbsp;&nbsp; <span class="muted">Denominators — NM: ${nmDenom.toLocaleString()} | ${region}: ${brDenom.toLocaleString()}</span>
+     <br><span class="muted">Top 10 diagnoses ranked by ${region} (%) using explicit “New Mexico” rows for state values.</span>`;
+  $('#thRegion').textContent = `${region} (%)`;
+
+  $('#tbody').innerHTML = top10.map(r=>`
+    <tr>
+      <td>${r.label}</td>
+      <td class="num">${to2(r.nmPct)}</td>
+      <td class="num">${to2(r.brPct)}</td>
+    </tr>
+  `).join('');
+
+  // Store for CSV
+  window.__lastRows = top10.map(r=>({label:r.label, nm:r.nmPct, br:r.brPct}));
+  window.__lastMeta = {age, region};
+  statusPill('Top-10 table updated ✓');
+}
+$('#btnBuild').addEventListener('click', buildTable);
+
+/* ---------- CSV export ---------- */
+function downloadCSV(){
+  if(!window.__lastRows){ alert('Build the table first.'); return; }
+  const {age, region} = window.__lastMeta;
+  let csv = `Diagnosis,New Mexico (%),${region} (%),Age Group\n`;
+  window.__lastRows.forEach(r=>{
+    csv += `"${r.label}",${to2(r.nm)},${to2(r.br)},"${age}"\n`;
+  });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), {href:url, download:`diagnosis_shares_top10_${age}_${region}.csv`});
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+$('#btnDownload').addEventListener('click', downloadCSV);
+</script>
+</body>
+
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>New Mexico Services Calculator (Excel)</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --ink:#1f2937; --muted:#6b7280; --bg:#f8fafc; --line:#e5e7eb;
+    --brand:#0ea5a6; --accent:#2563eb; --emerald:#059669;
+  }
+  html,body{margin:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--ink)}
+  header{padding:18px 20px;border-bottom:1px solid var(--line)}
+  h1{margin:0 0 6px;font-size:clamp(18px,2.8vw,24px)}
+  main{padding:16px 20px;max-width:1200px;margin:auto}
+  .grid{display:grid;gap:14px}
+  @media(min-width:1000px){.grid.two{grid-template-columns:1fr 1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+  label{font-size:14px}
+  input[type=file],input[type=text],select,button{border:1px solid var(--line);border-radius:10px}
+  input[type=file]{display:block;margin:.35rem 0 1rem}
+  input[type=text],select{padding:8px 10px}
+  button{padding:10px 14px;background:#fff;cursor:pointer}
+  button.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+  .pill{display:inline-block;padding:4px 8px;background:#eef7f8;border:1px solid #d9eef0;color:#0c6470;border-radius:999px;font-size:12px}
+  .muted{color:var(--muted);font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line)}
+  th{background:#fcfcfd;text-align:left}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  /* colored headers/icons for detailed table */
+  .banner{display:flex;align-items:center;gap:8px;font-weight:600}
+  .ico{display:inline-flex;width:18px;height:18px;align-items:center;justify-content:center;border-radius:6px;font-size:12px;color:#fff}
+  .ico.nm{background:var(--emerald)}
+  .ico.br{background:var(--accent)}
+  .thead-nm{background:#ecfdf5}
+  .thead-br{background:#eef2ff}
+  .badge{font-size:12px;border:1px solid var(--line);padding:2px 6px;border-radius:999px;background:#f8fafc}
+</style>
+</head>
+<body>
+<header>
+  <h1>New Mexico Services Calculator</h1>
+  <div class="muted">Upload workbook → pick sheet names → compute comparisons (2-decimal precision).</div>
+</header>
+
+<main class="grid">
+  <!-- Inputs -->
+  <section class="card">
+    <div class="grid two">
+      <div>
+        <label><strong>Upload Excel workbook</strong> <span class="muted">(.xlsx recommended; CSV works)</span></label>
+        <input id="fileExcel" type="file" accept=".xlsx,.xls,.csv"/>
+        <div class="muted">Detected sheets: <span id="sheetsList">—</span></div>
+      </div>
+      <div>
+        <label><strong>Sheet names</strong> (edit to match your tabs)</label>
+        <div class="grid two" style="gap:10px">
+          <div>
+            <div class="muted">Numerator (default: <em>All Service</em>)</div>
+            <input id="numSheet" type="text" placeholder="All Service"/>
+          </div>
+          <div>
+            <div class="muted">Denominator (default: <em>Client Counts BR</em>)</div>
+            <input id="denSheet" type="text" placeholder="Client Counts BR"/>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div>
+        <label>Behavioral Region (comparison target)</label><br/>
+        <select id="regionSel"><option>(load workbook)</option></select>
+      </div>
+      <div><button class="primary" id="btnLoad">Load workbook</button></div>
+      <div><button id="btnBuild">Build Tables</button></div>
+      <div><button id="btnCSV">Download CSVs</button></div>
+      <div class="pill" id="status">Waiting for file…</div>
+    </div>
+  </section>
+
+  <!-- 1) Five-row summary (NM vs selected BR) -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="banner"><span class="ico nm">NM</span> New Mexico vs <span class="ico br">BR</span> <span id="brName1" class="badge">—</span></div>
+      <div class="muted">Five key service groups</div>
+    </div>
+    <table id="tblSummary">
+      <thead>
+        <tr><th>Service Type</th><th>New Mexico (%)</th><th id="thBR1">Behavioral Region (%)</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 2) All-BR table (same five services) -->
+  <section class="card">
+    <div class="banner"><span class="ico br">BR</span> All Regions — with New Mexico comparison</div>
+    <table id="tblAllBR">
+      <thead>
+        <tr>
+          <th>Behavioral Region</th>
+          <th>Recovery Services</th>
+          <th>BHOP Services</th>
+          <th>Intensive Outpatient Services</th>
+          <th>Crisis Services</th>
+          <th>Residential &amp; Inpatient Services</th>
+          <th>New Mexico (%)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- 3) Detailed table with custom colors + icons -->
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="banner">
+        <span class="ico nm">NM</span> Statewide
+        <span class="ico br">BR</span> <span id="brName2" class="badge">—</span>
+      </div>
+      <div class="muted">Counts (Beneficiary N) &amp; Percentages</div>
+    </div>
+    <table id="tblDetail">
+      <thead>
+        <tr>
+          <th rowspan="2">Service</th>
+          <th class="thead-nm" colspan="2">Statewide (New Mexico)</th>
+          <th class="thead-br" colspan="2"><span id="thBR2">Behavioral Region</span></th>
+        </tr>
+        <tr>
+          <th class="thead-nm">Beneficiary N</th><th class="thead-nm">%</th>
+          <th class="thead-br">Beneficiary N</th><th class="thead-br">%</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+/* ------------------ helpers ------------------ */
+const $ = s => document.querySelector(s);
+const status = t => $('#status').textContent = t;
+const to2 = v => (isFinite(v) ? Number(v).toFixed(2) : '0.00');
+
+/* canonical mapping so “display” names match your underlying sheet keys */
+function canonService(s){
+  const x = String(s||'').trim();
+  if (/^bhop(\s*services)?$/i.test(x)) return 'BHOP';
+  if (/^int(ensive)?\s*out(patien)?t\s*services?$/i.test(x)) return 'IntOutServ';
+  if (/^crisis(\s*services)?$/i.test(x)) return 'Crisis_Services';
+  if (/^residential(\s*&|and)?\s*inpatient(\s*services)?$/i.test(x)) return 'ResidentialInp';
+  if (/^recovery\s*services?$/i.test(x)) return 'Recovery Services';
+  return x;
+}
+const DISPLAY = {
+  'Recovery Services':'Recovery Services',
+  'BHOP':'BHOP Services',
+  'IntOutServ':'Intensive Outpatient Services',
+  'Crisis_Services':'Crisis Services',
+  'ResidentialInp':'Residential & Inpatient Services'
+};
+const KEY5_CANON = ['Recovery Services','BHOP','IntOutServ','Crisis_Services','ResidentialInp'];
+
+/* ------------------ data holders ------------------ */
+let workbook=null, SHEETS=[], NUM=[], DEN=[], REGIONS=[];
+
+/* parse wide numerator like screenshot into tidy rows {service, br, count} */
+function regionKeyFromHeader(h){
+  const low = String(h||'').toLowerCase();
+  if(low.includes('statewide')) return 'New Mexico';
+  const m = low.match(/behavioral\s*region\s*(\d+)/);
+  if(m) return 'BR'+m[1];
+  return null;
+}
+function parseNumeratorWide(jsonRows){
+  const out=[];
+  for(const r of jsonRows){
+    const keys = Object.keys(r);
+    const service = r[keys.find(k=>/service/i.test(k))];
+    if(!service) continue;
+    for(const k of keys){
+      if(/beneficiary/i.test(k)){
+        const rk = regionKeyFromHeader(k);
+        if(!rk) continue;
+        const n = Number(r[k] ?? 0);
+        out.push({service:String(service).trim(), br:rk, count:n});
+      }
+    }
+  }
+  return out;
+}
+
+/* parse tidy numerator: columns Service, behavioral_region_names, Count */
+function parseNumeratorTidy(jsonRows){
+  const out=[];
+  for(const r of jsonRows){
+    const service = r.service ?? r.Service ?? r.SERVICE;
+    const br = r.behavioral_region_names ?? r.Behavioral_Region_Names ?? r.Region ?? r.RegionName ?? r.region;
+    const count = r.count ?? r.Count ?? r.Count_Clients ?? r['Beneficiary N'] ?? r.Beneficiary ?? r.Beneficiaries ?? r.n;
+    if(service && br!=null){
+      out.push({service:String(service).trim(), br:String(br).trim(), count:Number(count||0)});
+    }
+  }
+  return out;
+}
+
+/* read worksheet to JSON rows (keeps blanks) */
+function wsToJSON(ws){ return XLSX.utils.sheet_to_json(ws,{defval:null,raw:true}); }
+
+/* load workbook */
+$('#fileExcel').addEventListener('change', async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  status('Reading file…');
+  const buf = await f.arrayBuffer();
+  workbook = XLSX.read(buf, {type:'array'});
+  SHEETS = workbook.SheetNames||[];
+  $('#sheetsList').textContent = SHEETS.join(', ')||'—';
+  // guesses
+  $('#numSheet').value = SHEETS.find(s=>/all\s*service/i.test(s)) || 'All Service';
+  $('#denSheet').value = SHEETS.find(s=>/client\s*counts?\s*br/i.test(s)) || 'Client Counts BR';
+  status('File loaded. Click “Load workbook”.');
+});
+
+function loadSheets(){
+  if(!workbook){ alert('Upload a workbook first.'); return; }
+  const ns = ($('#numSheet').value||'').trim();
+  const ds = ($('#denSheet').value||'').trim();
+  const wsNum = workbook.Sheets[ns] || workbook.Sheets[SHEETS[0]];
+  const wsDen = workbook.Sheets[ds] || workbook.Sheets[SHEETS[1]||SHEETS[0]];
+  if(!wsNum||!wsDen){ alert('Could not find one or both sheets.'); return; }
+
+  // Numerator parsing (accept wide or tidy)
+  const numRows = wsToJSON(wsNum);
+  const hasWideCols = Object.keys(numRows[0]||{}).some(k=>/beneficiary/i.test(k));
+  NUM = hasWideCols ? parseNumeratorWide(numRows) : parseNumeratorTidy(numRows);
+
+  // attach canonical service key for grouping/summing
+  NUM = NUM.map(r => ({ ...r, serviceCanon: canonService(r.service) }));
+
+  // Denominator expected tidy: Region + Count (handle many spellings)
+  const denRows = wsToJSON(wsDen);
+  DEN = denRows.map(r=>{
+    const br = r.Behavioral_Region_Names ?? r.behavioral_region_names ?? r.Region ?? r.region ?? r['Behavioral Region'];
+    const n  = r.Count_Clients ?? r.Clients ?? r.Count ?? r.N ?? r['Beneficiary N'] ?? r.Total ?? r.n;
+    return {br:String(br).trim(), n:Number(n||0)};
+  }).filter(x=>x.br);
+
+  // Regions dropdown (keep original order-ish, but numeric sort BR1..BR13)
+  REGIONS = Array.from(new Set(DEN.map(d=>d.br))).sort((a,b)=>{
+    const na=+String(a).replace(/\D+/g,''), nb=+String(b).replace(/\D+/g,'');
+    if(isFinite(na)&&isFinite(nb)) return na-nb;
+    return String(a).localeCompare(String(b));
+  });
+
+  $('#regionSel').innerHTML = REGIONS.map(r=>`<option value="${r}">${r}</option>`).join('');
+  status(`Loaded ${NUM.length.toLocaleString()} numerator rows & ${DEN.length.toLocaleString()} denominator rows.`);
+}
+$('#btnLoad').addEventListener('click', loadSheets);
+
+/* group helpers (use canonical keys) */
+function denomOf(br){
+  return (DEN.find(d => String(d.br).trim() === String(br).trim()) || { n:0 }).n;
+}
+function sumCount(serviceCanon, br){
+  const brKey = String(br).trim();
+  return NUM
+    .filter(r => r.serviceCanon === serviceCanon && String(r.br).trim() === brKey)
+    .reduce((a,b) => a + (b.count || 0), 0);
+}
+function pct(serviceCanon, br){
+  const den = denomOf(br), num = sumCount(serviceCanon, br);
+  return den ? (num/den*100) : 0;
+}
+
+/* build all three tables */
+function buildTables(){
+  if(!NUM.length||!DEN.length){ alert('Load workbook & sheets first.'); return; }
+  const region = $('#regionSel').value || 'BR1';
+  $('#brName1').textContent = region;
+  $('#brName2').textContent = region;
+  $('#thBR1').textContent   = `${region} (%)`;
+  $('#thBR2').textContent   = `Behavioral Region (${region})`;
+
+  // 1) Five-row summary (NM vs selected BR)
+  const tb1 = $('#tblSummary tbody'); tb1.innerHTML='';
+  KEY5_CANON.forEach(key=>{
+    const label = DISPLAY[key] || key;
+    const nm = pct(key,'New Mexico');
+    const br = pct(key,region);
+    tb1.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${label}</td>
+        <td class="num">${to2(nm)}</td>
+        <td class="num">${to2(br)}</td>
+      </tr>
+    `);
+  });
+
+  // 2) All-BR table
+  const tb2 = $('#tblAllBR tbody'); tb2.innerHTML='';
+  const nmCells = KEY5_CANON.map(k => to2(pct(k,'New Mexico')));
+  REGIONS.filter(r=>r!=='New Mexico').forEach(r=>{
+    const cells = KEY5_CANON.map(k => `<td class="num">${to2(pct(k, r))}</td>`).join('');
+    tb2.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${r}</td>
+        ${cells}
+        <td class="num">${nmCells.join(' / ')}</td>
+      </tr>
+    `);
+  });
+
+  // 3) Detailed table (all services as-is)
+  const tb3 = $('#tblDetail tbody'); tb3.innerHTML='';
+  const services = Array.from(new Set(NUM.map(r=>r.service))).sort((a,b)=>String(a).localeCompare(String(b)));
+  const NM_DEN = denomOf('New Mexico'), BR_DEN = denomOf(region);
+  services.forEach(svc=>{
+    const key = canonService(svc);     // compute using canonical
+    const nmN = sumCount(key,'New Mexico');
+    const brN = sumCount(key,region);
+    const nmP = NM_DEN ? (nmN/NM_DEN*100) : 0;
+    const brP = BR_DEN ? (brN/BR_DEN*100) : 0;
+    tb3.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>${svc}</td>
+        <td class="num">${nmN.toLocaleString()}</td>
+        <td class="num">${to2(nmP)}%</td>
+        <td class="num">${brN.toLocaleString()}</td>
+        <td class="num">${to2(brP)}%</td>
+      </tr>
+    `);
+  });
+
+  status('Tables updated ✓');
+}
+$('#btnBuild').addEventListener('click', buildTables);
+
+/* CSV export (three blocks in one file) */
+function downloadCSVs(){
+  if(!NUM.length||!DEN.length){ alert('Build tables first.'); return; }
+  const region = $('#regionSel').value || 'BR1';
+
+  // Summary
+  let csv1 = `Service Type,New Mexico (%),${region} (%)\n`;
+  KEY5_CANON.forEach(key=>{
+    csv1 += `"${DISPLAY[key]||key}",${to2(pct(key,'New Mexico'))},${to2(pct(key,region))}\n`;
+  });
+
+  // All BR
+  let csv2 = `Behavioral Region,Recovery Services,BHOP Services,Intensive Outpatient Services,Crisis Services,Residential & Inpatient Services,New Mexico (% 5 cols)\n`;
+  const nmCells = KEY5_CANON.map(k=>to2(pct(k,'New Mexico')));
+  REGIONS.filter(r=>r!=='New Mexico').forEach(r=>{
+    const cells = KEY5_CANON.map(k=>to2(pct(k,r)));
+    csv2 += `${r},${cells.join(',')},"${nmCells.join('/')}"\n`;
+  });
+
+  // Detailed
+  let csv3 = `Service,Statewide Beneficiary N,Statewide %,${region} Beneficiary N,${region} %\n`;
+  const services = Array.from(new Set(NUM.map(r=>r.service))).sort((a,b)=>String(a).localeCompare(String(b)));
+  const NM_DEN = denomOf('New Mexico'), BR_DEN = denomOf(region);
+  services.forEach(svc=>{
+    const key = canonService(svc);
+    const nmN = sumCount(key,'New Mexico'), brN = sumCount(key,region);
+    const nmP = NM_DEN ? (nmN/NM_DEN*100) : 0;
+    const brP = BR_DEN ? (brN/BR_DEN*100) : 0;
+    csv3 += `"${svc}",${nmN},${to2(nmP)}%,${brN},${to2(brP)}%\n`;
+  });
+
+  const combined = [
+    '# Summary (NM vs ' + region + ')\n', csv1, '\n\n',
+    '# All BRs (5 services)\n', csv2, '\n\n',
+    '# Detailed (all services)\n', csv3
+  ].join('');
+  const blob = new Blob([combined], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), {href:url, download:`nm_services_outputs_${region}.csv`});
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+$('#btnCSV').addEventListener('click', downloadCSVs);
+</script>
+<!-- ====== Quick Links Section ====== -->
+<section class="quick-links">
+  <h2 class="ql-title">Explore More</h2>
+  <div class="ql-grid">
+    <!-- 1) Demographics -->
+    <a class="ql-card" href="https://koushiktripurari19986.wordpress.com" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">👥</span>
+      <span class="ql-text">
+        <span class="ql-heading">Demographics</span>
+        <span class="ql-sub">Population, age, geography</span>
+      </span>
+    </a>
+
+    <!-- 2) Diagnoses counts -->
+    <a class="ql-card" href="https://public.tableau.com/app/profile/koushik.tripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🧾</span>
+      <span class="ql-text">
+        <span class="ql-heading">Diagnoses Counts</span>
+        <span class="ql-sub">State & region breakdowns</span>
+      </span>
+    </a>
+
+    <!-- 3) Service counts -->
+    <a class="ql-card" href="https://github.com/koushiktripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🩺</span>
+      <span class="ql-text">
+        <span class="ql-heading">Service Counts</span>
+        <span class="ql-sub">BHOP, IOP, Crisis, Residential</span>
+      </span>
+    </a>
+
+    <!-- 4) Crisis data -->
+    <a class="ql-card" href="https://prezi.com/view/CHW-CHR-Guide-Registration-Steps" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">📟</span>
+      <span class="ql-text">
+        <span class="ql-heading">Crisis Data</span>
+        <span class="ql-sub">ED visits, mobile crisis, CTC</span>
+      </span>
+    </a>
+
+    <!-- 5) County maps: CCBHC, CTC & Crisis -->
+    <a class="ql-card" href="https://www.linkedin.com/in/koushiktripurari" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🗺️</span>
+      <span class="ql-text">
+        <span class="ql-heading">County Maps — CCBHC, CTC & Crisis</span>
+        <span class="ql-sub">Coverage & access by county</span>
+      </span>
+    </a>
+  </div>
+</section>
+
+<!-- ====== Minimal Styles ====== -->
+<style>
+  :root{
+    --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb;
+    --ql-card:#f9fafb; --ql-card-hover:#eef2ff; --ql-border:#e5e7eb;
+    --ql-shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04);
+  }
+  .quick-links{margin:24px 0; padding:8px 0}
+  .ql-title{margin:0 0 12px; font:600 18px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial; color:var(--ql-ink)}
+  .ql-grid{
+    display:grid; gap:12px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .ql-card{
+    display:flex; gap:12px; align-items:center;
+    padding:14px 16px; border-radius:14px;
+    background:var(--ql-card); border:1px solid var(--ql-border);
+    text-decoration:none; color:var(--ql-ink);
+    box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  .ql-card:hover{ transform:translateY(-2px); background:var(--ql-card-hover); border-color:#c7d2fe }
+  .ql-emoji{font-size:22px}
+  .ql-text{display:flex; flex-direction:column}
+  .ql-heading{font-weight:700}
+  .ql-sub{font-size:12px; color:var(--ql-sub)}
+</style>
+
+</body>
+</html>
+
