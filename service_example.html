@@ -201,6 +201,14 @@ function textColorFor(hex6){
   return (L > 0.6) ? '#000000' : '#FFFFFF';
 }
 
+/* NEW: flag-code → display-name helper (keeps logic safe) */
+const PREFIXES = [/^RS_/, /^OP_Prov_/, /^IntOutServ_/, /^CS_/];
+function displayName(code){
+  return PREFIXES.reduce((s,re)=>s.replace(re,''), String(code))
+                 .replaceAll('_',' ')
+                 .trim();
+}
+
 let workbook=null, SHEETS=[];
 let NUM=[], DEN=[];
 let REGIONS=[];
@@ -286,6 +294,8 @@ const WORK_KEYS = [
   {key:'OP_Prov_IndNonIndLicPsyPrac', label:'Independently & Non-Independently Licensed Psychotherapy Practitioners'},
   {key:'OP_Prov_DedSubUsePra', label:'Dedicated Substance Use Practitioners'}
 ];
+
+/* structural order, members are CODES (strings) */
 const ORDER = [
   {label:'Recovery Services', key:'Recovery Services', strong:true, members:["RS_PSW", "RS_CCSS", "RS_PSR", "RS_CSW", "RS_FSW", "RS_CHW", "RS_BMS", "RS_BT"]},
   {label:'BHOP Services', key:'BHOP', strong:true, members:[]},
@@ -298,6 +308,45 @@ const ORDER = [
   {label:'Intensive Outpatient Services', key:'IntOutServ', strong:true, members:["IntOutServ_IOP", "IntOutServ_PartialHosp", "IntOutServ_ACT", "IntOutServ_MST", "IntOutServ_FFT", "IntOutServ_HEDIS"]},
   {label:'Crisis Services', key:'Crisis_Services', strong:true, members:["CS_ED", "CS_UrgentCare", "CS_MobileCrisis_CTC", "CS_Crisis_Intervention"]},
 ];
+
+/* Optional “rich” groups with {code,name}. You can keep or remove. */
+const groups = [
+  {label:'Recovery Services', key:'Recovery Services', strong:true, members:[
+    {code:"RS_PSW", name:"PSW"},
+    {code:"RS_CCSS", name:"CCSS"},
+    {code:"RS_PSR", name:"PSR"},
+    {code:"RS_CSW", name:"CSW"},
+    {code:"RS_FSW", name:"FSW"},
+    {code:"RS_CHW", name:"CHW"},
+    {code:"RS_BMS", name:"BMS"},
+    {code:"RS_BT",  name:"BT"}
+  ]},
+  {label:'BH-Prescribers', key:'OP_Prov_BHPrescribers', mild:true, members:[
+    {code:"OP_Prov_Psychiatrist",      name:"Psychiatrist"},
+    {code:"OP_Prov_PsyNursePract",     name:"Psy Nurse Pract"},
+    {code:"OP_Prov_PrescPsychologist", name:"Prescribing Psychologist"}
+  ]},
+  {label:'Dedicated Substance Use Practitioners', key:'OP_Prov_DedSubUsePra', mild:true, members:[
+    {code:"OP_Prov_LADAC", name:"LADAC"},
+    {code:"OP_Prov_LSAA",  name:"LSAA"},
+    {code:"OP_Prov_CADAC", name:"CADAC"}
+  ]},
+  {label:'Intensive Outpatient Services', key:'IntOutServ', strong:true, members:[
+    {code:"IntOutServ_IOP",         name:"IOP"},
+    {code:"IntOutServ_PartialHosp", name:"Partial Hosp"},
+    {code:"IntOutServ_ACT",         name:"ACT"},
+    {code:"IntOutServ_MST",         name:"MST"},
+    {code:"IntOutServ_FFT",         name:"FFT"},
+    {code:"IntOutServ_HEDIS",       name:"HEDIS"}
+  ]},
+  {label:'Crisis Services', key:'Crisis_Services', strong:true, members:[
+    {code:"CS_ED",                 name:"ED"},
+    {code:"CS_UrgentCare",        name:"Urgent Care"},
+    {code:"CS_MobileCrisis_CTC",  name:"Mobile Crisis CTC"},
+    {code:"CS_Crisis_Intervention", name:"Crisis Intervention"}
+  ]}
+];
+
 
 /* build tables */
 function buildTables(){
@@ -354,27 +403,38 @@ function buildTables(){
       </tr>
     `;
   }
+
+  /* UPDATED: accept members as strings or {code,name} */
   function getCountsFor(key, members){
     const nmN = sumCount(key,'New Mexico');
     const brN = sumCount(key,region);
     if ((nmN||brN) || !members || members.length===0) return {nmN, brN};
+
+    const codeOf = m => (typeof m === 'string' ? m : (m.code || m));
     return {
-      nmN: members.reduce((a,k)=>a+sumCount(k,'New Mexico'),0),
-      brN: members.reduce((a,k)=>a+sumCount(k,region),0)
+      nmN: members.reduce((a,m)=>a + sumCount(codeOf(m),'New Mexico'), 0),
+      brN: members.reduce((a,m)=>a + sumCount(codeOf(m),region), 0)
     };
   }
+
   ORDER.forEach(block=>{
     const cls = block.strong ? 'grp-strong' : (block.mild ? 'grp-mild' : '');
     const {nmN, brN} = getCountsFor(block.key, block.members);
     const nmP = NM_DEN ? (nmN/NM_DEN*100) : 0;
     const brP = BR_DEN ? (brN/BR_DEN*100) : 0;
     tb3.insertAdjacentHTML('beforeend', rowHTML(block.label, nmN, nmP, brN, brP, cls));
-    (block.members||[]).forEach(k=>{
-      const nm = sumCount(k,'New Mexico');
-      const br = sumCount(k,region);
+
+    /* UPDATED: use displayName (or provided name) for sub-rows */
+    (block.members||[]).forEach(m=>{
+      const code = (typeof m === 'string') ? m : m.code;
+      const name = (typeof m === 'string') ? displayName(m) : (m.name || displayName(m.code));
+
+      const nm = sumCount(code,'New Mexico');
+      const br = sumCount(code,region);
       const nmPct = NM_DEN ? (nm/NM_DEN*100) : 0;
       const brPct = BR_DEN ? (br/BR_DEN*100) : 0;
-      tb3.insertAdjacentHTML('beforeend', rowHTML(k, nm, nmPct, br, brPct));
+
+      tb3.insertAdjacentHTML('beforeend', rowHTML(name, nm, nmPct, br, brPct));
     });
   });
 
@@ -441,6 +501,7 @@ function applyBgColors(){
 }
 document.getElementById('btnApplyColors').addEventListener('click', applyBgColors);
 </script>
+
 <!-- ====== Quick Links Section ====== -->
 <section class="quick-links">
   <h2 class="ql-title">Explore More</h2>
