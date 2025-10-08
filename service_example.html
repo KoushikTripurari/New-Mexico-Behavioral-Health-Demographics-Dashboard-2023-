@@ -48,7 +48,72 @@
   #tblDetail tbody tr:nth-child(odd){background:#fafbfc}
   .tiny{font-size:12px}
   .color-input{width:110px}
+  /* faint vertical cues between the two sides */
+#tblDetail .col-nm { box-shadow: inset -1px 0 0 rgba(15,23,42,.06); }
+#tblDetail .col-br { box-shadow: inset  1px 0 0 rgba(15,23,42,.06); }
+/* === Update 3rd Table Font and Service Column Width === */
+#tblDetail {
+  font-family: Arial, sans-serif !important;
+  font-size: 15px;
+}
+
+/* Make first column (Service) double-width */
+#tblDetail th:first-child,
+#tblDetail td:first-child {
+  width: 40%;        /* default ~20%, so this doubles it */
+  min-width: 240px;  /* ensures it stays visibly wider */
+  font-weight: 600;
+  font-size: 16px;   /* slightly larger for clarity */
+}
+/* === 3rd table: font + Service column tweaks === */
+
+/* Use Arial only for the 3rd table */
+#tblDetail, #tblDetail th, #tblDetail td {
+  font-family: Arial, sans-serif;
+}
+
+/* Make "Service" header larger & bold */
+#tblDetail thead th:first-child {
+  font-size: 18px;
+  font-weight: 800; /* strong bold for header */
+}
+
+/* Double the width of the Service column (header + body) */
+#tblDetail th:first-child,
+#tblDetail td:first-child {
+  width: 40%;
+  min-width: 260px;
+  /* Do NOT set a blanket font-weight here so we don't kill existing bolds */
+  font-size: 16px;      /* a touch larger than the numeric columns */
+  line-height: 1.25;
+}
+
+/* Preserve your group emphasis */
+#tblDetail tbody tr.grp-strong > td:first-child { font-weight: 800; }
+#tblDetail tbody tr.grp-mild   > td:first-child { font-weight: 600; }
+
+/* Optional: member rows get medium weight for readability (adjust if you like) */
+#tblDetail tbody tr:not(.grp-strong):not(.grp-mild) > td:first-child {
+  font-weight: 500;
+}
+/* === Make Statewide and Behavioral Region headings larger & bold === */
+#tblDetail thead th[colspan="2"] {
+  font-size: 18px !important;   /* increase heading size */
+  font-weight: 800 !important;  /* strong bold */
+  text-transform: uppercase;    /* optional: makes it all caps */
+  letter-spacing: 0.03em;       /* optional: gives elegant spacing */
+  color: #0b1324;               /* dark ink tone */
+}
+
+/* make entire layout full-width */
+main { max-width: none !important; width: 100% !important; padding: 0 !important; }
+.card { border-radius: 0 !important; }
+
+/* 3rd table keeps its fixed layout and widths */
+#tblDetail { table-layout: fixed; width: 100%; }
+
 </style>
+
 </head>
 <body>
 <header>
@@ -200,6 +265,16 @@ function textColorFor(hex6){
   const L = (0.2126*r + 0.7152*g + 0.0722*b)/255;
   return (L > 0.6) ? '#000000' : '#FFFFFF';
 }
+/* hex → {r,g,b} and rgba(hex,a) for tints */
+function hexToRgb(hex){
+  const h = hex.replace('#','');
+  return { r:parseInt(h.slice(0,2),16), g:parseInt(h.slice(2,4),16), b:parseInt(h.slice(4,6),16) };
+}
+function rgba(hex, a){
+  const {r,g,b} = hexToRgb(hex);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 
 /* NEW: flag-code → display-name helper (keeps logic safe) */
 const PREFIXES = [/^RS_/, /^OP_Prov_/, /^IntOutServ_/, /^CS_/];
@@ -377,6 +452,8 @@ function buildTables(){
       </tr>
     `);
   });
+// after rows are injected:
+document.querySelectorAll('#tblDetail td.num').forEach(el => el.style.letterSpacing = '0.01em');
 
   // workforce
   const tbW = $('#tblWorkforce tbody'); tbW.innerHTML='';
@@ -483,16 +560,29 @@ document.getElementById('btnSaveImage').addEventListener('click', saveDetailTabl
 /* -------- Column fill application (6-digit hex required) -------- */
 function applyOneSide(selector, hex6){
   $all(selector).forEach(el=>{
+    // reset
     if(!hex6){
+      el.style.background = '';
+      el.style.backgroundImage = '';
       el.style.backgroundColor = '';
       el.style.color = '';
       return;
     }
-    if(!isSixHex(hex6)){ return; }     // enforce #RRGGBB
-    el.style.backgroundColor = hex6;
+    if(!isSixHex(hex6)){ return; }  // enforce #RRGGBB
+
+    // subtle textured tint: soft gradient + faint diagonal hatch overlay
+    const c1 = rgba(hex6, 0.12);   // top-left slightly stronger
+    const c2 = rgba(hex6, 0.06);   // bottom-right lighter
+    el.style.backgroundImage =
+      `linear-gradient(135deg, ${c1} 0%, ${c2} 100%),` +
+      `repeating-linear-gradient(45deg, rgba(255,255,255,0.14) 0 2px, rgba(255,255,255,0) 2px 6px)`;
+    el.style.backgroundColor = 'transparent';
+
+    // readable text on any fill
     el.style.color = textColorFor(hex6);
   });
 }
+
 function applyBgColors(){
   const nmHex = ($('#nmBgHex').value || '').trim();
   const brHex = ($('#brBgHex').value || '').trim();
