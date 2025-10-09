@@ -365,14 +365,29 @@ function renderAge(){
 const genderCanvas = document.getElementById('genderCanvas');
 const gctx = genderCanvas.getContext('2d');
 const genderBG = new Image();
-genderBG.crossOrigin = 'anonymous'; // helpful when hosted
 let genderBGReady = false;
 
-// default image path (put gender_bg.png next to this HTML)
-genderBG.src = 'https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/blob/main/Gender_image.png';
+// 1) same-origin (works with canvas download)
+const RELATIVE = 'images/Gender_image.png';
 
+// 2) fallback to raw GitHub (may show image but can taint canvas)
+const RAW = 'https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender_image.png';
 
 genderBG.onload = ()=>{ genderBGReady = true; drawGenderOverlay(); };
+genderBG.onerror = ()=>{
+  if (genderBG.src.includes(RELATIVE)) {
+    console.warn('Relative image not found. Trying raw GitHub fallback…');
+    genderBG.crossOrigin = 'anonymous';
+    genderBG.src = RAW;
+  } else {
+    console.error('Default image failed to load. Use the Upload control or fix the path.');
+    const s = document.getElementById('status');
+    if (s) s.textContent = 'Default image not found. Upload one or ensure images/Gender_image.png exists.';
+  }
+};
+
+// Try same-origin first (put the file in /images in your Pages repo)
+genderBG.src = RELATIVE;
 
 /* Live controls */
 ['lx','ly','rx','ry','fsize'].forEach(id=>{
