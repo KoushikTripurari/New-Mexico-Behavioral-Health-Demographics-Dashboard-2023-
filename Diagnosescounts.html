@@ -1,381 +1,343 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Diagnosis % Calculator — Explicit “New Mexico” rows</title>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Diagnosis % Calculator — Explicit “New Mexico” rows</title>
 
-<!-- Excel reader -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Excel reader -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-<style>
-  :root{ --ink:#2f3134; --bg:#f7f8fa; --line:#e5e7eb; --accent:#0c8a96; }
-  html,body{margin:0;height:100%}
-  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--ink);background:var(--bg)}
-  header{padding:18px 16px;border-bottom:1px solid var(--line)}
-  h1{margin:0 0 6px;font-size:clamp(18px,2.8vw,24px)}
-  main{padding:16px; width:100%; margin:0}
-  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0}
-  .row{display:grid;gap:14px}
-  @media(min-width:900px){.row{grid-template-columns:1fr 1fr}}
-  label{font-size:14px;color:#444}
-  input[type=file]{display:block;margin:.35rem 0 1rem}
-  select,button{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
-  button{cursor:pointer}
-  button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
-  .pill{display:inline-block;padding:4px 8px;background:#eef7f8;border:1px solid #d9eef0;color:#0c6470;border-radius:999px;font-size:12px}
-  .muted{color:#6b7280;font-size:12px}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:10px 8px;border-bottom:1px solid var(--line)}
-  th{background:#fcfcfd;text-align:left}
-  td.num{text-align:right;font-variant-numeric:tabular-nums}
-  .note{font-size:13px;color:#555}
-  .code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f8fafc;border:1px solid #e5e7eb;padding:2px 6px;border-radius:6px}
-  /* make entire layout full-width */
-main { max-width: none !important; width: 100% !important; padding: 0 !important; }
+    <style>
+    :root{ --ink:#2f3134; --bg:#f7f8fa; --line:#e5e7eb; --accent:#0c8a96; }
+    html,body{margin:0;height:100%}
+    body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;color:var(--ink);background:var(--bg)}
+    header{padding:18px 16px;border-bottom:1px solid var(--line)}
+    h1{margin:0 0 6px;font-size:clamp(18px,2.8vw,24px)}
+    main{padding:16px; width:100%; margin:0}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0}
+    .row{display:grid;gap:14px}
+    @media(min-width:900px){.row{grid-template-columns:1fr 1fr}}
+    label{font-size:14px;color:#444}
+    input[type=file]{display:block;margin:.35rem 0 1rem}
+    select,button{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff}
+    button{cursor:pointer}
+    button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+    .pill{display:inline-block;padding:4px 8px;background:#eef7f8;border:1px solid #d9eef0;color:#0c6470;border-radius:999px;font-size:12px}
+    .muted{color:#6b7280;font-size:12px}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:10px 8px;border-bottom:1px solid var(--line)}
+    th{background:#fcfcfd;text-align:left}
+    td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .note{font-size:13px;color:#555}
+    .code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#f8fafc;border:1px solid #e5e7eb;padding:2px 6px;border-radius:6px}
+    </style>
+    </head>
+    <body>
+    <header>
+    <h1>Diagnosis % Calculator — Explicit “New Mexico” rows</h1>
+    <div class="muted">NM % comes only from rows where Behavioral Region Name is exactly <em>New Mexico</em> (case-insensitive), in both numerator and denominator.</div>
+    </header>
 
-
-</style>
-</head>
-<body>
-<header>
-  <h1>Diagnosis % Calculator — Explicit “New Mexico” rows</h1>
-  <div class="muted">NM % comes only from rows where Behavioral Region Name is exactly <em>New Mexico</em> (case-insensitive), in both numerator and denominator.</div>
-</header>
-
-<main>
-  <div class="card">
-    <div class="row">
-      <div>
-        <label><strong>Upload Excel workbook</strong><br><span class="muted">.xlsx preferred (CSV works too)</span></label>
-        <input id="fileExcel" type="file" accept=".xlsx,.xls,.csv" />
-        <div class="muted">Detected sheets: <span id="sheetsList">—</span></div>
-      </div>
-      <div>
-        <label><strong>Pick sheets</strong> (auto-filled with all tabs)</label>
-        <div class="row" style="grid-template-columns:1fr 1fr; gap:10px">
-          <div>
-            <div class="muted">Numerators (diagnosis counts)</div>
-            <select id="sheetNumerators"></select>
-          </div>
-          <div>
-            <div class="muted">Denominators (population by BR)</div>
-            <select id="sheetDenominators"></select>
-          </div>
+    <main>
+    <div class="card">
+        <div class="row">
+        <div>
+            <label><strong>Upload Excel workbook</strong><br><span class="muted">.xlsx preferred (CSV works too)</span></label>
+            <input id="fileExcel" type="file" accept=".xlsx,.xls,.csv" />
+            <div class="muted">Detected sheets: <span id="sheetsList">—</span></div>
         </div>
-        <div class="muted" style="margin-top:6px">
-          Expected columns:<br>
-          <span class="code">Diagnoses</span>, <span class="code">stratify_18</span>, <span class="code">behavioral_region_names</span>, <span class="code">Count_Clients_diagnoses</span><br>
-          and <span class="code">Stratify_18</span>, <span class="code">Behavioral_Region_Names</span>, <span class="code">Count_Clients</span>
+        <div>
+            <label><strong>Pick sheets</strong> (auto-filled with all tabs)</label>
+            <div class="row" style="grid-template-columns:1fr 1fr; gap:10px">
+            <div>
+                <div class="muted">Numerators (diagnosis counts)</div>
+                <select id="sheetNumerators"></select>
+            </div>
+            <div>
+                <div class="muted">Denominators (population by BR)</div>
+                <select id="sheetDenominators"></select>
+            </div>
+            </div>
+            <div class="muted" style="margin-top:6px">
+            Expected columns:<br>
+            <span class="code">Diagnoses</span>, <span class="code">stratify_18</span>, <span class="code">behavioral_region_names</span>, <span class="code">Count_Clients_diagnoses</span><br>
+            and <span class="code">Stratify_18</span>, <span class="code">Behavioral_Region_Names</span>, <span class="code">Count_Clients</span>
+            </div>
         </div>
-      </div>
+        </div>
+
+        <div class="controls" style="margin-top:10px">
+        <div>
+            <label>Age group</label><br>
+            <select id="ageSel">
+            <option value="<18">&lt;18</option>
+            <option value=">=18">&ge;18</option>
+            </select>
+        </div>
+        <div>
+            <label>Behavioral Region (for Top-10 ranking)</label><br>
+            <select id="regionSel"><option>(load workbook first)</option></select>
+        </div>
+        <div><button class="primary" id="btnLoad">Load sheets</button></div>
+        <div><button id="btnBuild">Build Top-10 Table</button></div>
+        <div><button id="btnDownload">Download CSV</button></div>
+        <div class="pill" id="status">Waiting for file…</div>
+        </div>
     </div>
 
-    <div class="controls" style="margin-top:10px">
-      <div>
-        <label>Age group</label><br>
-        <select id="ageSel">
-          <option value="<18">&lt;18</option>
-          <option value=">=18">&ge;18</option>
-        </select>
-      </div>
-      <div>
-        <label>Behavioral Region (for Top-10 ranking)</label><br>
-        <select id="regionSel"><option>(load workbook first)</option></select>
-      </div>
-      <div><button class="primary" id="btnLoad">Load sheets</button></div>
-      <div><button id="btnBuild">Build Top-10 Table</button></div>
-      <div><button id="btnDownload">Download CSV</button></div>
-      <div class="pill" id="status">Waiting for file…</div>
+    <div class="card">
+        <div id="titleBar" class="note">—</div>
+        <table id="outTable">
+        <thead>
+            <tr>
+            <th>Diagnosis</th>
+            <th>New Mexico (%)</th>
+            <th id="thRegion">Behavioral Region (%)</th>
+            </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        </table>
     </div>
-  </div>
+    </main>
 
-  <div class="card">
-    <div id="titleBar" class="note">—</div>
-    <table id="outTable">
-      <thead>
+    <script>
+    /* ---------- Utilities ---------- */
+    const $ = s => document.querySelector(s);
+    const statusPill = msg => $('#status').textContent = msg;
+    const to2 = v => (isFinite(v) ? Number(v).toFixed(2) : '0.00');
+    const isNM = v => String(v||'').trim().toLowerCase() === 'new mexico';
+
+    /* Friendly names (extend if you need more) */
+    const DIAG_NAME = {
+    'MD_AnxietyDisorder':'Anxiety Disorder',
+    'MD_AttentionDeficitDisorders':'Attention Deficit Disorders',
+    'MD_MoodDisorder':'Mood Disorder',
+    'MD_DevelopmentalDisorders':'Developmental Disorders',
+    'MD_IntSelfHarmSuicidalIdeation':'Intentional Self Harm & Suicidal Ideation',
+    'MD_ConductDisorders':'Conduct Disorders',
+    'SUD_CannabisUseDisorder':'Cannabis Use Disorder',
+    'MD_EmoDisordersChildhoodOnset':'Emotional Disorders Childhood Onset',
+    'MD_PsychoticDisorder':'Psychotic Disorder',
+    'MD_EatingDisorders':'Eating Disorders'
+    };
+    function prettyDiagName(k){
+    if (DIAG_NAME[k]) return DIAG_NAME[k];
+    return String(k).replace(/^(MD_|SUD_|BH_|IS_?)/,'').replace(/_/g,' ')
+                    .replace(/\b([a-z])/g, m => m.toUpperCase());
+    }
+
+    /* Accept many header spellings (lowercased, no spaces) */
+    function norm(s){ return String(s||'').toLowerCase().replace(/[\s\-]/g,''); }
+    const ALIAS = {
+    diag: ['diagnoses','dx','condition'],
+    age: ['stratify_18','stratify18','agegroup','age_group'],
+    br: ['behavioral_region_names','behavioralregionnames','behavioral_region','region','br','behavioral_region_names'],
+    numCount: ['count_clients_diagnoses','countdiagnoses','clients_dx','count','n'],
+    denAge: ['stratify_18','stratify18','agegroup','age_group'],
+    denBR: ['behavioral_region_names','behavioralregionnames','behavioral_region_names','behavioral_region','region','br'],
+    denCount: ['count_clients','clients','total_clients','denominator','count','n']
+    };
+    function mapRow(obj){
+    const m = {}; for(const [k,v] of Object.entries(obj)) m[norm(k)] = v; return m;
+    }
+    function getField(row, keys){
+    for(const k of keys){ if (k in row) return row[k]; }
+    return undefined;
+    }
+
+    /* ---------- File parsing ---------- */
+    let workbook=null, SHEETS=[], NUM=[], DEN=[];
+
+    /* Populate selects with all sheet names */
+    function fillSheetSelects(){
+    const numSel = $('#sheetNumerators');
+    const denSel = $('#sheetDenominators');
+    numSel.innerHTML = SHEETS.map((s,i)=>`<option value="${s}" ${i===0?'selected':''}>${s}</option>`).join('');
+    denSel.innerHTML = SHEETS.map((s,i)=>`<option value="${s}" ${i===1?'selected':''}>${s}</option>`).join('');
+    }
+
+    $('#fileExcel').addEventListener('change', async (e)=>{
+    const f = e.target.files[0]; if(!f) return;
+    statusPill('Reading file…');
+    const buf = await f.arrayBuffer();
+
+    if(f.name.toLowerCase().endsWith('.csv')){
+        const text = new TextDecoder().decode(new Uint8Array(buf));
+        workbook = XLSX.read(text, {type:'string'});
+    }else{
+        workbook = XLSX.read(buf, {type:'array'});
+    }
+
+    SHEETS = workbook.SheetNames || [];
+    $('#sheetsList').textContent = SHEETS.join(', ') || '—';
+    fillSheetSelects();
+    statusPill('File loaded. Choose sheets and click “Load sheets”.');
+    });
+
+    function sheetToObjs(ws){
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:null, raw:true});
+    return rows.map(mapRow);
+    }
+
+    function loadSheets(){
+    if(!workbook){ alert('Upload an Excel first.'); return; }
+    const numName = $('#sheetNumerators').value;
+    const denName = $('#sheetDenominators').value;
+    const wsNum = workbook.Sheets[numName];
+    const wsDen = workbook.Sheets[denName];
+    if(!wsNum || !wsDen){ alert('Could not find the selected sheet(s).'); return; }
+
+    // Numerators normalize
+    NUM = sheetToObjs(wsNum).map(r=>({
+        Diagnoses:      getField(r, ALIAS.diag),
+        stratify_18:    getField(r, ALIAS.age),
+        br:             getField(r, ALIAS.br),
+        CountDX: Number(getField(r, ALIAS.numCount) ?? 0)
+    })).filter(x=>x.Diagnoses && x.stratify_18 && x.br);
+
+    // Denominators normalize
+    DEN = sheetToObjs(wsDen).map(r=>({
+        Stratify_18:            getField(r, ALIAS.denAge),
+        Behavioral_Region:      getField(r, ALIAS.denBR),
+        CountClients: Number(getField(r, ALIAS.denCount) ?? 0)
+    })).filter(x=>x.Stratify_18 && x.Behavioral_Region);
+
+    // populate regions (exclude "New Mexico" from the dropdown)
+    const regions = Array.from(new Set(
+        DEN.map(r=>String(r.Behavioral_Region).trim()).filter(v=>!isNM(v))
+    )).sort((a,b)=> {
+        const na=+String(a).replace(/\D+/g,''), nb=+String(b).replace(/\D+/g,'');
+        if(isFinite(na) && isFinite(nb)) return na-nb;
+        return String(a).localeCompare(String(b));
+    });
+
+    $('#regionSel').innerHTML = regions.map(r=>`<option value="${r}">${r}</option>`).join('') || '<option>(no BRs found)</option>';
+    statusPill(`Loaded ${NUM.length.toLocaleString()} numerator rows & ${DEN.length.toLocaleString()} denominator rows.`);
+    }
+    $('#btnLoad').addEventListener('click', loadSheets);
+
+    /* ---------- Core calculation (explicit NM rows) ---------- */
+    function buildTable(){
+    if(!NUM.length || !DEN.length){ alert('Load sheets first.'); return; }
+    const age = $('#ageSel').value;
+    const region = $('#regionSel').value;
+    if(!region){ alert('Pick a region'); return; }
+
+    // Denominators for this age
+    let nmDenom = 0, brDenom = 0;
+    DEN.forEach(r=>{
+        if(String(r.Stratify_18).trim() !== age) return;
+        if(isNM(r.Behavioral_Region)) nmDenom += Number(r.CountClients||0);
+        if(String(r.Behavioral_Region).trim() === region) brDenom += Number(r.CountClients||0);
+    });
+
+    // Numerators for this age
+    const nmNum = new Map(); // key -> count (only rows with BR == New Mexico)
+    const brNum = new Map(); // key -> count (only rows with BR == selected region)
+
+    NUM.forEach(r=>{
+        if(String(r.stratify_18).trim() !== age) return;
+
+        let key = String(r.Diagnoses).trim();
+        if(key === 'IS') key = 'MD_IntSelfHarmSuicidalIdeation';  // merge short into long
+
+        const c = Number(r.CountDX || 0);
+        if(isNM(r.br)) nmNum.set(key, (nmNum.get(key)||0) + c);
+        if(String(r.br).trim() === region) brNum.set(key, (brNum.get(key)||0) + c);
+    });
+
+    // Build list keyed by BR %, then take Top 10 and map NM % for same keys
+    const rowsAll = [];
+    for(const [key, brCount] of brNum.entries()){
+        const brPct = brDenom ? (brCount / brDenom * 100) : 0;
+        const nmPct = nmDenom ? ((nmNum.get(key)||0) / nmDenom * 100) : 0;
+        rowsAll.push({ key, label: prettyDiagName(key), brPct, nmPct });
+    }
+    rowsAll.sort((a,b)=> b.brPct - a.brPct);
+    const top10 = rowsAll.slice(0,10);
+
+    // Paint
+    $('#titleBar').innerHTML =
+        `<strong>Age:</strong> ${age}
+        &nbsp;&nbsp; <strong>Region:</strong> ${region}
+        &nbsp;&nbsp; <span class="muted">Denominators — NM: ${nmDenom.toLocaleString()} | ${region}: ${brDenom.toLocaleString()}</span>
+        <br><span class="muted">Top 10 diagnoses ranked by ${region} (%) using explicit “New Mexico” rows for state values.</span>`;
+    $('#thRegion').textContent = `${region} (%)`;
+
+    $('#tbody').innerHTML = top10.map(r=>`
         <tr>
-          <th>Diagnosis</th>
-          <th>New Mexico (%)</th>
-          <th id="thRegion">Behavioral Region (%)</th>
+        <td>${r.label}</td>
+        <td class="num">${to2(r.nmPct)}</td>
+        <td class="num">${to2(r.brPct)}</td>
         </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-</main>
+    `).join('');
 
-<script>
-/* ---------- Utilities ---------- */
-const $ = s => document.querySelector(s);
-const statusPill = msg => $('#status').textContent = msg;
-const to2 = v => (isFinite(v) ? Number(v).toFixed(2) : '0.00');
-const isNM = v => String(v||'').trim().toLowerCase() === 'new mexico';
+    // Store for CSV
+    window.__lastRows = top10.map(r=>({label:r.label, nm:r.nmPct, br:r.brPct}));
+    window.__lastMeta = {age, region};
+    statusPill('Top-10 table updated ✓');
+    }
+    $('#btnBuild').addEventListener('click', buildTable);
 
-/* Friendly names (extend if you need more) */
-const DIAG_NAME = {
-  'MD_AnxietyDisorder':'Anxiety Disorder',
-  'MD_AttentionDeficitDisorders':'Attention Deficit Disorders',
-  'MD_MoodDisorder':'Mood Disorder',
-  'MD_DevelopmentalDisorders':'Developmental Disorders',
-  'MD_IntSelfHarmSuicidalIdeation':'Intentional Self Harm & Suicidal Ideation',
-  'MD_ConductDisorders':'Conduct Disorders',
-  'SUD_CannabisUseDisorder':'Cannabis Use Disorder',
-  'MD_EmoDisordersChildhoodOnset':'Emotional Disorders Childhood Onset',
-  'MD_PsychoticDisorder':'Psychotic Disorder',
-  'MD_EatingDisorders':'Eating Disorders'
-};
-function prettyDiagName(k){
-  if (DIAG_NAME[k]) return DIAG_NAME[k];
-  return String(k).replace(/^(MD_|SUD_|BH_|IS_?)/,'').replace(/_/g,' ')
-                  .replace(/\b([a-z])/g, m => m.toUpperCase());
-}
-
-/* Accept many header spellings (lowercased, no spaces) */
-function norm(s){ return String(s||'').toLowerCase().replace(/[\s\-]/g,''); }
-const ALIAS = {
-  diag: ['diagnoses','dx','condition'],
-  age: ['stratify_18','stratify18','agegroup','age_group'],
-  br: ['behavioral_region_names','behavioralregionnames','behavioral_region','region','br','behavioral_region_names'],
-  numCount: ['count_clients_diagnoses','countdiagnoses','clients_dx','count','n'],
-  denAge: ['stratify_18','stratify18','agegroup','age_group'],
-  denBR: ['behavioral_region_names','behavioralregionnames','behavioral_region_names','behavioral_region','region','br'],
-  denCount: ['count_clients','clients','total_clients','denominator','count','n']
-};
-function mapRow(obj){
-  const m = {}; for(const [k,v] of Object.entries(obj)) m[norm(k)] = v; return m;
-}
-function getField(row, keys){
-  for(const k of keys){ if (k in row) return row[k]; }
-  return undefined;
-}
-
-/* ---------- File parsing ---------- */
-let workbook=null, SHEETS=[], NUM=[], DEN=[];
-
-/* Populate selects with all sheet names */
-function fillSheetSelects(){
-  const numSel = $('#sheetNumerators');
-  const denSel = $('#sheetDenominators');
-  numSel.innerHTML = SHEETS.map((s,i)=>`<option value="${s}" ${i===0?'selected':''}>${s}</option>`).join('');
-  denSel.innerHTML = SHEETS.map((s,i)=>`<option value="${s}" ${i===1?'selected':''}>${s}</option>`).join('');
-}
-
-$('#fileExcel').addEventListener('change', async (e)=>{
-  const f = e.target.files[0]; if(!f) return;
-  statusPill('Reading file…');
-  const buf = await f.arrayBuffer();
-
-  if(f.name.toLowerCase().endsWith('.csv')){
-    const text = new TextDecoder().decode(new Uint8Array(buf));
-    workbook = XLSX.read(text, {type:'string'});
-  }else{
-    workbook = XLSX.read(buf, {type:'array'});
-  }
-
-  SHEETS = workbook.SheetNames || [];
-  $('#sheetsList').textContent = SHEETS.join(', ') || '—';
-  fillSheetSelects();
-  statusPill('File loaded. Choose sheets and click “Load sheets”.');
-});
-
-function sheetToObjs(ws){
-  const rows = XLSX.utils.sheet_to_json(ws, {defval:null, raw:true});
-  return rows.map(mapRow);
-}
-
-function loadSheets(){
-  if(!workbook){ alert('Upload an Excel first.'); return; }
-  const numName = $('#sheetNumerators').value;
-  const denName = $('#sheetDenominators').value;
-  const wsNum = workbook.Sheets[numName];
-  const wsDen = workbook.Sheets[denName];
-  if(!wsNum || !wsDen){ alert('Could not find the selected sheet(s).'); return; }
-
-  // Numerators normalize
-  NUM = sheetToObjs(wsNum).map(r=>({
-    Diagnoses:      getField(r, ALIAS.diag),
-    stratify_18:    getField(r, ALIAS.age),
-    br:             getField(r, ALIAS.br),
-    CountDX: Number(getField(r, ALIAS.numCount) ?? 0)
-  })).filter(x=>x.Diagnoses && x.stratify_18 && x.br);
-
-  // Denominators normalize
-  DEN = sheetToObjs(wsDen).map(r=>({
-    Stratify_18:            getField(r, ALIAS.denAge),
-    Behavioral_Region:      getField(r, ALIAS.denBR),
-    CountClients: Number(getField(r, ALIAS.denCount) ?? 0)
-  })).filter(x=>x.Stratify_18 && x.Behavioral_Region);
-
-  // populate regions (exclude "New Mexico" from the dropdown)
-  const regions = Array.from(new Set(
-    DEN.map(r=>String(r.Behavioral_Region).trim()).filter(v=>!isNM(v))
-  )).sort((a,b)=> {
-    const na=+String(a).replace(/\D+/g,''), nb=+String(b).replace(/\D+/g,'');
-    if(isFinite(na) && isFinite(nb)) return na-nb;
-    return String(a).localeCompare(String(b));
-  });
-
-  $('#regionSel').innerHTML = regions.map(r=>`<option value="${r}">${r}</option>`).join('') || '<option>(no BRs found)</option>';
-  statusPill(`Loaded ${NUM.length.toLocaleString()} numerator rows & ${DEN.length.toLocaleString()} denominator rows.`);
-}
-$('#btnLoad').addEventListener('click', loadSheets);
-
-/* ---------- Core calculation (explicit NM rows) ---------- */
-function buildTable(){
-  if(!NUM.length || !DEN.length){ alert('Load sheets first.'); return; }
-  const age = $('#ageSel').value;
-  const region = $('#regionSel').value;
-  if(!region){ alert('Pick a region'); return; }
-
-  // Denominators for this age
-  let nmDenom = 0, brDenom = 0;
-  DEN.forEach(r=>{
-    if(String(r.Stratify_18).trim() !== age) return;
-    if(isNM(r.Behavioral_Region)) nmDenom += Number(r.CountClients||0);
-    if(String(r.Behavioral_Region).trim() === region) brDenom += Number(r.CountClients||0);
-  });
-
-  // Numerators for this age
-  const nmNum = new Map(); // key -> count (only rows with BR == New Mexico)
-  const brNum = new Map(); // key -> count (only rows with BR == selected region)
-
-  NUM.forEach(r=>{
-    if(String(r.stratify_18).trim() !== age) return;
-
-    let key = String(r.Diagnoses).trim();
-    if(key === 'IS') key = 'MD_IntSelfHarmSuicidalIdeation';  // merge short into long
-
-    const c = Number(r.CountDX || 0);
-    if(isNM(r.br)) nmNum.set(key, (nmNum.get(key)||0) + c);
-    if(String(r.br).trim() === region) brNum.set(key, (brNum.get(key)||0) + c);
-  });
-
-  // Build list keyed by BR %, then take Top 10 and map NM % for same keys
-  const rowsAll = [];
-  for(const [key, brCount] of brNum.entries()){
-    const brPct = brDenom ? (brCount / brDenom * 100) : 0;
-    const nmPct = nmDenom ? ((nmNum.get(key)||0) / nmDenom * 100) : 0;
-    rowsAll.push({ key, label: prettyDiagName(key), brPct, nmPct });
-  }
-  rowsAll.sort((a,b)=> b.brPct - a.brPct);
-  const top10 = rowsAll.slice(0,10);
-
-  // Paint
-  $('#titleBar').innerHTML =
-    `<strong>Age:</strong> ${age}
-     &nbsp;&nbsp; <strong>Region:</strong> ${region}
-     &nbsp;&nbsp; <span class="muted">Denominators — NM: ${nmDenom.toLocaleString()} | ${region}: ${brDenom.toLocaleString()}</span>
-     <br><span class="muted">Top 10 diagnoses ranked by ${region} (%) using explicit “New Mexico” rows for state values.</span>`;
-  $('#thRegion').textContent = `${region} (%)`;
-
-  $('#tbody').innerHTML = top10.map(r=>`
-    <tr>
-      <td>${r.label}</td>
-      <td class="num">${to2(r.nmPct)}</td>
-      <td class="num">${to2(r.brPct)}</td>
-    </tr>
-  `).join('');
-
-  // Store for CSV
-  window.__lastRows = top10.map(r=>({label:r.label, nm:r.nmPct, br:r.brPct}));
-  window.__lastMeta = {age, region};
-  statusPill('Top-10 table updated ✓');
-}
-$('#btnBuild').addEventListener('click', buildTable);
-
-/* ---------- CSV export ---------- */
-function downloadCSV(){
-  if(!window.__lastRows){ alert('Build the table first.'); return; }
-  const {age, region} = window.__lastMeta;
-  let csv = `Diagnosis,New Mexico (%),${region} (%),Age Group\n`;
-  window.__lastRows.forEach(r=>{
-    csv += `"${r.label}",${to2(r.nm)},${to2(r.br)},"${age}"\n`;
-  });
-  const blob = new Blob([csv], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = Object.assign(document.createElement('a'), {href:url, download:`diagnosis_shares_top10_${age}_${region}.csv`});
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-}
-$('#btnDownload').addEventListener('click', downloadCSV);
-</script>
-<section class="quick-links">
+    /* ---------- CSV export ---------- */
+    function downloadCSV(){
+    if(!window.__lastRows){ alert('Build the table first.'); return; }
+    const {age, region} = window.__lastMeta;
+    let csv = `Diagnosis,New Mexico (%),${region} (%),Age Group\n`;
+    window.__lastRows.forEach(r=>{
+        csv += `"${r.label}",${to2(r.nm)},${to2(r.br)},"${age}"\n`;
+    });
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), {href:url, download:`diagnosis_shares_top10_${age}_${region}.csv`});
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+    $('#btnDownload').addEventListener('click', downloadCSV);
+    </script>
+    <section class="quick-links">
   <h2 class="ql-title">Explore More</h2>
   <div class="ql-grid">
-    <!-- 1) Demographics -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/race_website.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">👥</span>
-      <span class="ql-text">
-        <span class="ql-heading">Demographics</span>
-        <span class="ql-sub">Population, age, geography</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Demographics</span><span class="ql-sub">Population, age, geography</span></span>
     </a>
-
-    <!-- 2) Diagnoses counts -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Diagnosescounts.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🧾</span>
-      <span class="ql-text">
-        <span class="ql-heading">Diagnoses Counts</span>
-        <span class="ql-sub">State & region breakdowns</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Diagnoses Counts</span><span class="ql-sub">State & region breakdowns</span></span>
     </a>
-
-    <!-- 3) Service counts -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/service_example.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🩺</span>
-      <span class="ql-text">
-        <span class="ql-heading">Service Counts</span>
-        <span class="ql-sub">BHOP, IOP, Crisis, Residential</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Service Counts</span><span class="ql-sub">BHOP, IOP, Crisis, Residential</span></span>
     </a>
-
-    <!-- 4) Crisis data -->
-    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/crisis counts customize site.html" target="_blank" rel="noopener">
+    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/crisis%20counts%20customize%20site.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">📟</span>
-      <span class="ql-text">
-        <span class="ql-heading">Crisis Data</span>
-        <span class="ql-sub">ED visits, mobile crisis, CTC</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Crisis Data</span><span class="ql-sub">ED visits, mobile crisis, CTC</span></span>
     </a>
-
-    <!-- 5) County maps: CCBHC, CTC & Crisis -->
-    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/all county map.html" target="_blank" rel="noopener">
+    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/all%20county%20map.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🗺️</span>
-      <span class="ql-text">
-        <span class="ql-heading">County Maps — CCBHC, CTC & Crisis</span>
-        <span class="ql-sub">Coverage & access by county</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">County Maps — CCBHC, CTC & Crisis</span><span class="ql-sub">Coverage & access by county</span></span>
+    </a>
+    <!-- NEW: Facility & Emergency -->
+    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Facility&amp;Emergencypage.html" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🏥</span>
+      <span class="ql-text"><span class="ql-heading">Facility &amp; Emergency</span><span class="ql-sub">Locations, capacity, ER resources</span></span>
     </a>
   </div>
 </section>
 
-<!-- ====== Minimal Styles ====== -->
 <style>
-  :root{
-    --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb;
-    --ql-card:#f9fafb; --ql-card-hover:#eef2ff; --ql-border:#e5e7eb;
-    --ql-shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04);
-  }
+  :root{ --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb; --ql-card:#f9fafb; --ql-card-hover:#eef2ff; --ql-border:#e5e7eb; --ql-shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04); }
   .quick-links{margin:24px 0; padding:8px 0}
   .ql-title{margin:0 0 12px; font:600 18px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial; color:var(--ql-ink)}
-  .ql-grid{
-    display:grid; gap:12px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-  .ql-card{
-    display:flex; gap:12px; align-items:center;
-    padding:14px 16px; border-radius:14px;
-    background:var(--ql-card); border:1px solid var(--ql-border);
-    text-decoration:none; color:var(--ql-ink);
-    box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;
-  }
+  .ql-grid{display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));}
+  .ql-card{display:flex; gap:12px; align-items:center; padding:14px 16px; border-radius:14px; background:var(--ql-card); border:1px solid #efefef; text-decoration:none; color:var(--ql-ink); box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;}
   .ql-card:hover{ transform:translateY(-2px); background:var(--ql-card-hover); border-color:#c7d2fe }
   .ql-emoji{font-size:22px}
   .ql-text{display:flex; flex-direction:column}
   .ql-heading{font-weight:700}
   .ql-sub{font-size:12px; color:var(--ql-sub)}
 </style>
-</body>
-</html>
-
+    </body>
+    </html>
