@@ -111,6 +111,69 @@ main { max-width: none !important; width: 100% !important; padding: 0 !important
 
 /* 3rd table keeps its fixed layout and widths */
 #tblDetail { table-layout: fixed; width: 100%; }
+/* === Compact layout for 3rd table (#tblDetail) === */
+#detailCard { overflow-x: auto; } /* just in case */
+
+#tblDetail.compact {
+  /* let the table size to contents instead of filling 100% */
+  table-layout: auto !important;
+  width: max-content !important;
+  display: inline-table;        /* so it doesn’t stretch full-width */
+}
+
+/* tighter cell padding */
+#tblDetail.compact th,
+#tblDetail.compact td {
+  padding: 6px 8px !important;
+}
+
+/* make “Service” column a bit smaller than 40% */
+#tblDetail.compact th:first-child,
+#tblDetail.compact td:first-child {
+  width: 30% !important;
+  min-width: 220px !important;
+}
+
+/* lock narrow widths for number/% columns (ch = character width) */
+#tblDetail.compact .col-nm,
+#tblDetail.compact .col-br { max-width: 12ch; }
+
+#tblDetail.compact .pct-nm,
+#tblDetail.compact .pct-br { max-width: 8ch; }
+
+/* prevent super-wide spacing inside numeric cells */
+#tblDetail.compact td.num { letter-spacing: 0 !important; }
+/* === Only shrink the Statewide (NM) columns in #tblDetail === */
+/* Beneficiary N (NM) */
+#tblDetail .col-nm {
+  width: 9ch !important;
+  max-width: 9ch !important;
+  white-space: nowrap;
+}
+
+/* % (NM) */
+#tblDetail .pct-nm {
+  width: 7ch !important;
+  max-width: 7ch !important;
+  white-space: nowrap;
+}
+
+/* Optional: slightly tighter padding just on NM columns (leave BR untouched) */
+#tblDetail td.col-nm, 
+#tblDetail th.col-nm, 
+#tblDetail td.pct-nm, 
+#tblDetail th.pct-nm {
+  padding-left: 6px !important;
+  padding-right: 6px !important;
+}
+/* Bright BR column: force white text over any BR background */
+#tblDetail .col-br,
+#tblDetail .pct-br,
+#tblDetail thead .col-br,
+#tblDetail thead .thead-br {
+  color: #ffffff !important;
+}
+
 
 </style>
 
@@ -525,8 +588,13 @@ document.querySelectorAll('#tblDetail td.num').forEach(el => el.style.letterSpac
   $('#tblDetail thead tr:nth-child(2) th:nth-child(3)').textContent = `Beneficiary N=${Number(BR_DEN||0).toLocaleString()}`;
 
   // apply the defaults immediately
-  applyBgColors();
-  status('Tables updated ✓');
+// put #tblDetail into compact mode
+document.getElementById('tblDetail').classList.add('compact');
+
+// apply the defaults immediately
+applyBgColors();
+status('Tables updated ✓');
+
 }
 $('#btnLoad').addEventListener('click', loadSheets);
 $('#btnBuild').addEventListener('click', buildTables);
@@ -556,11 +624,10 @@ async function saveDetailTableAsPNG(){
   }
 }
 document.getElementById('btnSaveImage').addEventListener('click', saveDetailTableAsPNG);
-
-/* -------- Column fill application (6-digit hex required) -------- */
-function applyOneSide(selector, hex6){
+/* Bright, solid background + white text for BR side */
+function applyBrSide(selector, hex6){
   $all(selector).forEach(el=>{
-    // reset
+    // reset if empty
     if(!hex6){
       el.style.background = '';
       el.style.backgroundImage = '';
@@ -568,26 +635,51 @@ function applyOneSide(selector, hex6){
       el.style.color = '';
       return;
     }
-    if(!isSixHex(hex6)){ return; }  // enforce #RRGGBB
+    if(!isSixHex(hex6)) return;
+
+    // solid/bright fill
+    el.style.backgroundImage = '';
+    el.style.backgroundColor = hex6;
+
+    // always white text on BR side
+    el.style.color = '#ffffff';
+  });
+}
+
+
+/* -------- Column fill application (6-digit hex required) -------- */
+function applyOneSide(selector, hex6){
+  $all(selector).forEach(el=>{
+    // reset (clear fills + restore default text color rules)
+    if(!hex6){
+      el.style.background = '';
+      el.style.backgroundImage = '';
+      el.style.backgroundColor = '';
+      el.style.color = '';              // <-- allow default colors when no fill
+      return;
+    }
+    if(!isSixHex(hex6)){ return; }      // enforce #RRGGBB
 
     // subtle textured tint: soft gradient + faint diagonal hatch overlay
-    const c1 = rgba(hex6, 0.12);   // top-left slightly stronger
-    const c2 = rgba(hex6, 0.06);   // bottom-right lighter
+    const c1 = rgba(hex6, 0.12);        // top-left slightly stronger
+    const c2 = rgba(hex6, 0.06);        // bottom-right lighter
     el.style.backgroundImage =
       `linear-gradient(135deg, ${c1} 0%, ${c2} 100%),` +
       `repeating-linear-gradient(45deg, rgba(255,255,255,0.14) 0 2px, rgba(255,255,255,0) 2px 6px)`;
     el.style.backgroundColor = 'transparent';
 
-    // readable text on any fill
-    el.style.color = textColorFor(hex6);
+    // 🔒 Always use BLACK text over the filled cells in the 3rd table
+    el.style.color = '#000000';
   });
 }
+
 
 function applyBgColors(){
   const nmHex = ($('#nmBgHex').value || '').trim();
   const brHex = ($('#brBgHex').value || '').trim();
   applyOneSide('#tblDetail .col-nm', nmHex);
-  applyOneSide('#tblDetail .col-br', brHex);
+    applyBrSide('#tblDetail .col-br', brHex);
+
 }
 document.getElementById('btnApplyColors').addEventListener('click', applyBgColors);
 </script>
