@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Facility Percentages — New Mexico vs BR (Excel Picker, Fixed Order)</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  :root{ --ink:#111827; --muted:#6b7280; --line:#e5e7eb; --nm:#2563eb; --br:#0ea5a6; --bg:#f8fafc; --card:#fff; }
+  html,body{margin:0}
+  body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:var(--bg);color:var(--ink)}
+  header{padding:16px 18px;border-bottom:1px solid var(--line);background:#fff}
+  h1{margin:0 0 6px;font-size:clamp(18px,2.8vw,24px)}
+  main{max-width:1100px;margin:0 auto;padding:16px 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+  input[type=file],select,button{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff}
+  button.primary{background:var(--br);color:#fff;border-color:var(--br)}
+  .muted{color:var(--muted);font-size:12px}
+  table{width:100%;border-collapse:collapse;background:#fff}
+  th,td{padding:12px 10px;border-bottom:1px solid var(--line)}
+  th{background:#fcfcfd;text-align:left}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#fff}
+  .legend{display:flex;gap:14px;align-items:center}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .nm{background:var(--nm)} .br{background:var(--br)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Facility Percentages — New Mexico vs Behavioral Region</h1>
+  <div class="muted">Upload your Excel. Pick the exact columns from the first header row. We’ll list the five facilities in the fixed order you asked for.</div>
+</header>
+
+<main>
+  <!-- Controls -->
+  <section class="card">
+    <div class="row">
+      <div>
+        <label><strong>Workbook</strong></label><br/>
+        <input id="file" type="file" accept=".xlsx,.xls"/>
+      </div>
+      <div>
+        <label><strong>Sheet</strong></label><br/>
+        <select id="sheetSel"><option>(upload first)</option></select>
+      </div>
+      <div>
+        <label><strong>Region column</strong></label><br/>
+        <select id="colRegion"><option>(select sheet)</option></select>
+      </div>
+      <div>
+        <label><strong>Facility column</strong></label><br/>
+        <select id="colFacility"><option>(select sheet)</option></select>
+      </div>
+      <div>
+        <label><strong>Percentages column</strong></label><br/>
+        <select id="colPercent"><option>(select sheet)</option></select>
+      </div>
+      <span id="status" class="pill">Waiting for file…</span>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label><strong>Select BR</strong> (excludes “New Mexico”)</label><br/>
+        <select id="brSel"><option>(pick columns first)</option></select>
+      </div>
+      <div>
+        <button id="build" class="primary">Build Table</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Output -->
+  <section class="card">
+    <div class="legend" style="margin-bottom:10px">
+      <span class="dot nm"></span><span class="muted">New Mexico (%)</span>
+      <span class="dot br"></span><span class="muted">Selected BR (%)</span>
+    </div>
+
+    <table id="outTbl" aria-live="polite">
+      <thead>
+        <tr>
+          <th>Facility</th>
+          <th class="num">New Mexico (%)</th>
+          <th class="num" id="brHdr">BR (%)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <!-- ER metric table (reads from the same sheet/column picks) -->
+<section class="card">
+  <h3 style="margin:0 0 6px">ER Visit Rate per 100 BH Diagnosis</h3>
+  <table id="erMetricTbl">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th class="num">New Mexico</th>
+        <th class="num" id="erBrHdr">Behavioral Region</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div class="muted" style="margin-top:6px">
+    Values are read from the selected <em>Percentages</em> column on the same sheet.
+  </div>
+</section>
+
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const status = m => $('#status').textContent = m;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const to2 = v => (isFinite(v) ? Number(v).toFixed(2) : '—');
+
+/* Percent parser:
+   - "28.02%" -> 28.02
+   - 28.02    -> 28.02
+   - 0.2802   -> 28.02  (auto-convert if <= 1) */
+function parsePct(v){
+  if (v == null) return NaN;
+  if (typeof v === 'number'){
+    const n = v;
+    if (Math.abs(n) <= 1.000001) return n * 100;
+    return n;
+  }
+  const s = String(v).trim().replace(/,/g,'');
+  const m = s.match(/-?\d+(\.\d+)?/);
+  if(!m) return NaN;
+  const n = Number(m[0]);
+  return Math.abs(n) <= 1.000001 ? n * 100 : n;
+}
+
+let wb = null;
+let headersRaw = [];   // exact headers (untrimmed) from first row
+
+/* --- File load --- */
+$('#file').addEventListener('change', async (e)=>{
+  const f = e.target.files[0]; if(!f) return;
+  status('Reading workbook…');
+  const buf = await f.arrayBuffer();
+  wb = XLSX.read(buf,{type:'array'});
+  const names = wb.SheetNames || [];
+  $('#sheetSel').innerHTML = names.map(n=>`<option>${esc(n)}</option>`).join('') || '<option>(no sheets)</option>';
+  status('Pick a sheet to load columns.');
+  if(names.length){ populateColumns(names[0]); }
+});
+
+$('#sheetSel').addEventListener('change', e=>{
+  populateColumns(e.target.value);
+});
+
+/* --- Build column dropdowns from the FIRST HEADER ROW --- */
+function populateColumns(sheetName){
+  const ws = wb?.Sheets?.[sheetName];
+  if(!ws){ return; }
+  const rows = XLSX.utils.sheet_to_json(ws,{header:1, defval:null, raw:true});
+  headersRaw = (rows[0]||[]).map(h => (h==null ? '' : String(h))); // keep EXACT
+  const headersDisplay = headersRaw.map(h => (String(h).trim() || '(blank)'));
+
+  const opts = headersRaw.map((raw, i)=>`<option value="${encodeURIComponent(raw)}">${esc(headersDisplay[i])}</option>`).join('');
+  $('#colRegion').innerHTML  = opts || '<option>(no headers)</option>';
+  $('#colFacility').innerHTML= opts || '<option>(no headers)</option>';
+  $('#colPercent').innerHTML = opts || '<option>(no headers)</option>';
+
+  // Smart guesses (match trimmed text, assign RAW values)
+  const pick = (patterns, fallback) => {
+    const idx = headersDisplay.findIndex(h => patterns.some(re => re.test(h)));
+    if (idx >= 0) return encodeURIComponent(headersRaw[idx]);
+    const fbIdx = headersDisplay.findIndex(h => h === fallback);
+    return fbIdx >= 0 ? encodeURIComponent(headersRaw[fbIdx]) : (headersRaw[0] ? encodeURIComponent(headersRaw[0]) : '');
+  };
+  $('#colRegion').value   = pick([/behavioral.*region/i, /^BR\b/i, /region/i], 'behavioral_region_names');
+  $('#colFacility').value = pick([/^facility$/i, /facility/i], 'Facility');
+  $('#colPercent').value  = pick([/percent/i, /^% ?percent/i, /^%$/], 'Percentages');
+
+  fillBRList(sheetName);
+}
+
+/* --- Populate BR list (exclude “New Mexico”) --- */
+function fillBRList(sheetName){
+  const ws = wb?.Sheets?.[sheetName];
+  if(!ws) return;
+
+  const regKey = decodeURIComponent($('#colRegion').value || '');
+  const rows = XLSX.utils.sheet_to_json(ws,{defval:null, raw:true, header:headersRaw});
+  const set = new Set();
+  rows.forEach(r => {
+    const v = String(r[regKey] ?? '').trim();
+    if(v) set.add(v);
+  });
+  const all = Array.from(set).sort();
+  const brs = all.filter(v => v.trim().toLowerCase() !== 'new mexico');
+
+  $('#brSel').innerHTML = brs.length ? brs.map(v=>`<option>${esc(v)}</option>`).join('') : '<option>(no BRs)</option>';
+  if (brs.length){
+    const def = brs.find(v => /^BR[-\s]?2$/i.test(v) || v==='2') || brs[0];
+    $('#brSel').value = def;
+  }
+}
+
+/* Refill BR list if user changes column picks */
+['colRegion','colFacility','colPercent'].forEach(id=>{
+  document.getElementById(id).addEventListener('change', ()=>{
+    const sheet = $('#sheetSel').value;
+    fillBRList(sheet);
+  });
+});
+
+/* --- Build table --- */
+$('#build').addEventListener('click', ()=>{
+  if(!wb){ alert('Upload a workbook first.'); return; }
+  const sheet = $('#sheetSel').value;
+  const ws = wb.Sheets[sheet];
+  if(!ws){ alert('Select a valid sheet.'); return; }
+
+  const regKey = decodeURIComponent($('#colRegion').value || '');
+  const facKey = decodeURIComponent($('#colFacility').value || '');
+  const pctKey = decodeURIComponent($('#colPercent').value || '');
+  const pickBR = ($('#brSel').value || '').trim();
+
+  const rows = XLSX.utils.sheet_to_json(ws,{defval:null, raw:true, header:headersRaw});
+  if(!rows.length){ alert('Sheet appears empty.'); return; }
+
+  // Minimal records
+  const recs = rows.map(r => ({
+    region: String((r[regKey] ?? '')).trim(),
+    facility: String((r[facKey] ?? '')).trim(),
+    pct: parsePct(r[pctKey])
+  })).filter(r => r.facility && isFinite(r.pct));
+
+  // Maps: Facility -> %
+  const nmMap = Object.create(null);
+  const brMap = Object.create(null);
+  recs.forEach(r=>{
+    const reg = r.region.trim();
+    if (reg.toLowerCase() === 'new mexico') nmMap[r.facility] = r.pct;
+    if (reg === pickBR) brMap[r.facility] = r.pct;
+  });
+
+  // Fixed facility order (exact strings as requested)
+  const FACILITY_ORDER = [
+    "Hospital",
+    "Behavioral Health Agency",
+    "Core Services Angency",
+    "Residential Treatment Center",
+    "Community Mental Health Center"
+  ];
+
+  // Render
+  $('#brHdr').textContent = `${pickBR} (%)`;
+  const tbody = $('#outTbl tbody');
+  tbody.innerHTML = FACILITY_ORDER.map(f => `
+    <tr>
+      <td>${esc(f)}</td>
+      <td class="num" style="color:var(--nm)">${to2(nmMap[f])}</td>
+      <td class="num" style="color:var(--br)">${to2(brMap[f])}</td>
+    </tr>
+  `).join('');
+
+  status(`Rows scanned: ${recs.length.toLocaleString()} | BR="${pickBR}"`);
+});
+/* ---------- ER metric from the region-level sheet ---------- */
+function buildERMetric(){
+  if(!wb){ return; }
+  const sheet = $('#sheetSel').value;
+  const ws = wb.Sheets[sheet]; if(!ws) return;
+
+  const regKey = decodeURIComponent($('#colRegion').value || '');
+  const pctKey = decodeURIComponent($('#colPercent').value || '');
+  const pickBR = ($('#brSel').value || '').trim();
+
+  const rows = XLSX.utils.sheet_to_json(ws,{defval:null, raw:true, header:headersRaw});
+
+  // grab the % for a region (first match in the column)
+  function getPct(regionName){
+    const row = rows.find(r => String(r[regKey] ?? '').trim() === regionName);
+    return row ? parsePct(row[pctKey]) : NaN;
+  }
+
+  const nmPct = getPct('New Mexico');
+  const brPct = getPct(pickBR);
+
+  // render
+  $('#erBrHdr').textContent = pickBR;
+  const tb = document.querySelector('#erMetricTbl tbody');
+  tb.innerHTML = `
+    <tr>
+      <td>ER Visit Rate per 100 BH Diagnosis (%)</td>
+      <td class="num">${to2(nmPct)}</td>
+      <td class="num">${to2(brPct)}</td>
+    </tr>
+  `;
+}
+
+/* call it whenever you click Build Table */
+document.getElementById('build').addEventListener('click', () => {
+  buildERMetric();
+});
+
+</script>
+</body>
+</html>
