@@ -23,7 +23,7 @@
   @media (max-width:950px){.row.cols-4{grid-template-columns:1fr 1fr}}
   @media (max-width:640px){.row.cols-4{grid-template-columns:1fr}}
   label{display:block;font-weight:700;margin:6px 0}
-  input[type="text"],select,input[type="file"]{width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;outline:0}
+  input[type="text"],select,input[type="file"],input[type="number"],input[type="range"]{width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:10px;outline:0}
   input:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--ring)}
   .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
   .btn{appearance:none;border:0;background:var(--brand);color:#fff;padding:10px 14px;border-radius:10px;font-weight:800;cursor:pointer}
@@ -43,7 +43,7 @@
   table.comp tbody td:first-child{font-weight:700}
   table.comp td.num{text-align:right;font-variant-numeric:tabular-nums}
 
-  /* Gender panel (silhouette-style) */
+  /* Gender panel (kept for on-page viewing) */
   .panel{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb}
   .half{position:relative;min-height:220px;display:flex;align-items:center;justify-content:center}
   .female{background:linear-gradient(180deg,#ffd9e6 0%, var(--female) 100%)}
@@ -52,7 +52,10 @@
   .big{font-size:68px;font-weight:900;letter-spacing:.3px;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.25)}
   .labels{position:absolute;bottom:12px;left:12px;color:#111;font-weight:800;text-shadow:0 1px 0 #fff}
   .labels small{display:block;font-weight:800}
-  main { max-width: none !important; width: 100% !important; padding: 0 !important; }
+
+  /* Silhouette image controls */
+  .ctl-grid{display:grid;grid-template-columns:repeat(6,minmax(100px,1fr));gap:10px;margin:10px 0}
+  @media (max-width:900px){.ctl-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -153,7 +156,7 @@
     </div>
   </div>
 
-  <!-- Gender panel + table -->
+  <!-- Gender panel + table (on-page view) -->
   <div class="grid2">
     <div class="card">
       <div class="title">Gender</div>
@@ -196,6 +199,48 @@
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- ===== Silhouette image with adjustable labels + download ===== -->
+  <div class="card">
+    <div class="title">Gender Silhouette Image — Overlay Labels & Download</div>
+
+    <div class="ctl-grid">
+      <div>
+        <label>Left X</label>
+        <input id="lx" type="number" value="120">
+      </div>
+      <div>
+        <label>Left Y</label>
+        <input id="ly" type="number" value="470">
+      </div>
+      <div>
+        <label>Right X</label>
+        <input id="rx" type="number" value="800">
+      </div>
+      <div>
+        <label>Right Y</label>
+        <input id="ry" type="number" value="470">
+      </div>
+      <div>
+        <label>Font size</label>
+        <input id="fsize" type="number" value="48" min="18" max="96">
+      </div>
+      <div>
+        <label>Upload image (optional)</label>
+        <input id="bgUpload" type="file" accept="image/*">
+      </div>
+    </div>
+
+    <div class="canvasBox">
+      <!-- Use your own gender_bg.png in same folder (or upload). -->
+      <canvas id="genderCanvas" width="1280" height="640" style="width:100%;height:auto;display:block;border-radius:10px"></canvas>
+    </div>
+
+    <div class="controls" style="margin-top:10px">
+      <button id="downloadGender" class="btn">Download Gender Image</button>
+      <span class="note">Tip: tweak X/Y to move the black text blocks. The labels update automatically when you change the Behavioral Region.</span>
     </div>
   </div>
 </div>
@@ -316,7 +361,73 @@ function renderAge(){
   `;
 }
 
-/* ---------- Gender panel & table ---------- */
+/* ========== Gender panel, table, and SILHOUETTE IMAGE overlay ========== */
+const genderCanvas = document.getElementById('genderCanvas');
+const gctx = genderCanvas.getContext('2d');
+const genderBG = new Image();
+genderBG.crossOrigin = 'anonymous'; // helpful when hosted
+let genderBGReady = false;
+
+// default image path (put gender_bg.png next to this HTML)
+genderBG.src = 'https://github.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/blob/main/Gender_image.png';
+
+
+genderBG.onload = ()=>{ genderBGReady = true; drawGenderOverlay(); };
+
+/* Live controls */
+['lx','ly','rx','ry','fsize'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', drawGenderOverlay);
+});
+document.getElementById('bgUpload').addEventListener('change', e=>{
+  const f = e.target.files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => { genderBG.src = ev.target.result; };
+  reader.readAsDataURL(f);
+});
+document.getElementById('downloadGender').addEventListener('click', ()=>{
+  const a = document.createElement('a');
+  a.href = genderCanvas.toDataURL('image/png');
+  const br = document.getElementById('br').value.replace('BR','BR-');
+  a.download = `Gender_${br}.png`;
+  a.click();
+});
+
+/* Values shown in overlay — kept in this object and updated by renderGender() */
+let genderOverlayText = {
+  leftLine1: 'Statewide — –%',
+  leftLine2: 'BR-— —%',
+  rightLine1:'Statewide — –%',
+  rightLine2:'BR-— —%'
+};
+
+function drawGenderOverlay(){
+  if(!genderBGReady) return;
+
+  // Fit background image to canvas
+  gctx.clearRect(0,0,genderCanvas.width,genderCanvas.height);
+  gctx.drawImage(genderBG, 0, 0, genderCanvas.width, genderCanvas.height);
+
+  const lx = +document.getElementById('lx').value || 120;
+  const ly = +document.getElementById('ly').value || 470;
+  const rx = +document.getElementById('rx').value || 800;
+  const ry = +document.getElementById('ry').value || 470;
+  const fs = +document.getElementById('fsize').value || 48;
+  const lineGap = Math.round(fs * 0.95);
+
+  gctx.fillStyle = '#111111';
+  gctx.font = `800 ${fs}px ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial`;
+  gctx.textBaseline = 'alphabetic';
+
+  // Left (Female)
+  gctx.fillText(genderOverlayText.leftLine1, lx, ly);
+  gctx.fillText(genderOverlayText.leftLine2, lx, ly + lineGap);
+
+  // Right (Male)
+  gctx.fillText(genderOverlayText.rightLine1, rx, ry);
+  gctx.fillText(genderOverlayText.rightLine2, rx, ry + lineGap);
+}
+
 function renderGender(){
   const br = $('#br').value, brNo = br.replace('BR','');
   $('#tblTitleGender').textContent = `Male / Female — New Mexico vs. Behavioral Region ${brNo}`;
@@ -339,13 +450,20 @@ function renderGender(){
     <tr><td>Male</td>  <td class="num">${pct1(nmMalePct)}</td>  <td class="num">${pct1(brMalePct)}</td></tr>
   `;
 
-  // Panel labels
+  // Panel labels (kept)
   $('#femalePct').textContent  = `${pct1(brFemalePct)}%`;
   $('#malePct').textContent    = `${pct1(brMalePct)}%`;
   $('#femaleState').textContent= `Statewide — ${pct1(nmFemalePct)}%`;
   $('#femaleBR').textContent   = `${br.replace('BR','BR-')} — ${pct1(brFemalePct)}%`;
   $('#maleState').textContent  = `Statewide — ${pct1(nmMalePct)}%`;
   $('#maleBR').textContent     = `${br.replace('BR','BR-')} — ${pct1(brMalePct)}%`;
+
+  // ===== Update the silhouette overlay text (BLACK TEXT on your image) =====
+  genderOverlayText.leftLine1  = `Statewide — ${pct1(nmFemalePct)}%`;
+  genderOverlayText.leftLine2  = `${br.replace('BR','BR-')} — ${pct1(brFemalePct)}%`;
+  genderOverlayText.rightLine1 = `Statewide — ${pct1(nmMalePct)}%`;
+  genderOverlayText.rightLine2 = `${br.replace('BR','BR-')} — ${pct1(brMalePct)}%`;
+  drawGenderOverlay();
 }
 
 /* ---------- Fetchers ---------- */
@@ -357,20 +475,17 @@ function buildRaceUrl(year,key){
   return u;
 }
 
-// Age & Sex (B01001) — one pull for counties includes totals, male, female and under-18 bins
+// Age & Sex (B01001)
 function buildAgeSexCountyUrl(year,key){
   const vars = [
-    'NAME',
-    'B01001_001E','B01001_002E','B01001_026E',                 // total, male, female
-    'B01001_003E','B01001_004E','B01001_005E','B01001_006E',   // male <18
-    'B01001_027E','B01001_028E','B01001_029E','B01001_030E'    // female <18
+    'NAME','B01001_001E','B01001_002E','B01001_026E',
+    'B01001_003E','B01001_004E','B01001_005E','B01001_006E',
+    'B01001_027E','B01001_028E','B01001_029E','B01001_030E'
   ].join(',');
   let u = `https://api.census.gov/data/${year}/acs/acs5?get=${vars}&for=county:*&in=state:35`;
   if(key && key.trim()) u += `&key=${encodeURIComponent(key.trim())}`;
   return u;
 }
-
-// State version
 function buildAgeSexStateUrl(year,key){
   const vars = [
     'B01001_001E','B01001_002E','B01001_026E',
@@ -408,7 +523,7 @@ async function fetchACS(){
       return {county,total,aian,hisp,nhb,nhw,others:Math.max(0,total-(aian+hisp+nhb+nhw))};
     }).sort((a,b)=>a.county.localeCompare(b.county));
 
-    // County age+sex rows (use the index order we requested)
+    // County age+sex rows
     const cj = JSON.parse(countyTxt);
     countyAgeRows = [];
     countySexRows = [];
@@ -487,11 +602,11 @@ function downloadPNG(chart, filename){
   a.click();
 }
 </script>
-<!-- ====== Quick Links Section ====== -->
+
+<!-- ====== Quick Links Section (unchanged) ====== -->
 <section class="quick-links">
   <h2 class="ql-title">Explore More</h2>
   <div class="ql-grid">
-    <!-- 1) Demographics -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/race_website.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">👥</span>
       <span class="ql-text">
@@ -499,8 +614,6 @@ function downloadPNG(chart, filename){
         <span class="ql-sub">Population, age, geography</span>
       </span>
     </a>
-
-    <!-- 2) Diagnoses counts -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Diagnosescounts.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🧾</span>
       <span class="ql-text">
@@ -508,8 +621,6 @@ function downloadPNG(chart, filename){
         <span class="ql-sub">State & region breakdowns</span>
       </span>
     </a>
-
-    <!-- 3) Service counts -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/service_example.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🩺</span>
       <span class="ql-text">
@@ -517,8 +628,6 @@ function downloadPNG(chart, filename){
         <span class="ql-sub">BHOP, IOP, Crisis, Residential</span>
       </span>
     </a>
-
-    <!-- 4) Crisis data -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/crisis counts customize site.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">📟</span>
       <span class="ql-text">
@@ -526,8 +635,6 @@ function downloadPNG(chart, filename){
         <span class="ql-sub">ED visits, mobile crisis, CTC</span>
       </span>
     </a>
-
-    <!-- 5) County maps: CCBHC, CTC & Crisis -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/all county map.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🗺️</span>
       <span class="ql-text">
@@ -538,7 +645,7 @@ function downloadPNG(chart, filename){
   </div>
 </section>
 
-<!-- ====== Minimal Styles ====== -->
+<!-- Minimal styles for quick links -->
 <style>
   :root{
     --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb;
@@ -547,17 +654,8 @@ function downloadPNG(chart, filename){
   }
   .quick-links{margin:24px 0; padding:8px 0}
   .ql-title{margin:0 0 12px; font:600 18px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial; color:var(--ql-ink)}
-  .ql-grid{
-    display:grid; gap:12px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-  .ql-card{
-    display:flex; gap:12px; align-items:center;
-    padding:14px 16px; border-radius:14px;
-    background:var(--ql-card); border:1px solid var(--ql-border);
-    text-decoration:none; color:var(--ql-ink);
-    box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;
-  }
+  .ql-grid{display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));}
+  .ql-card{display:flex; gap:12px; align-items:center; padding:14px 16px; border-radius:14px; background:var(--ql-card); border:1px solid var(--ql-border); text-decoration:none; color:var(--ql-ink); box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;}
   .ql-card:hover{ transform:translateY(-2px); background:var(--ql-card-hover); border-color:#c7d2fe }
   .ql-emoji{font-size:22px}
   .ql-text{display:flex; flex-direction:column}
@@ -566,6 +664,4 @@ function downloadPNG(chart, filename){
 </style>
 
 </body>
-
 </html>
-
