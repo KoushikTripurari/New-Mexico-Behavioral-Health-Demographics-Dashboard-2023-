@@ -647,81 +647,48 @@
 <section class="quick-links">
   <h2 class="ql-title">Explore More</h2>
   <div class="ql-grid">
-    <!-- 1) Demographics -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/race_website.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">👥</span>
-      <span class="ql-text">
-        <span class="ql-heading">Demographics</span>
-        <span class="ql-sub">Population, age, geography</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Demographics</span><span class="ql-sub">Population, age, geography</span></span>
     </a>
-
-    <!-- 2) Diagnoses counts -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Diagnosescounts.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🧾</span>
-      <span class="ql-text">
-        <span class="ql-heading">Diagnoses Counts</span>
-        <span class="ql-sub">State & region breakdowns</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Diagnoses Counts</span><span class="ql-sub">State & region breakdowns</span></span>
     </a>
-
-    <!-- 3) Service counts -->
     <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/service_example.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🩺</span>
-      <span class="ql-text">
-        <span class="ql-heading">Service Counts</span>
-        <span class="ql-sub">BHOP, IOP, Crisis, Residential</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Service Counts</span><span class="ql-sub">BHOP, IOP, Crisis, Residential</span></span>
     </a>
-
-    <!-- 4) Crisis data -->
-    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/crisis counts customize site.html" target="_blank" rel="noopener">
+    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/crisis%20counts%20customize%20site.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">📟</span>
-      <span class="ql-text">
-        <span class="ql-heading">Crisis Data</span>
-        <span class="ql-sub">ED visits, mobile crisis, CTC</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">Crisis Data</span><span class="ql-sub">ED visits, mobile crisis, CTC</span></span>
     </a>
-
-    <!-- 5) County maps: CCBHC, CTC & Crisis -->
-    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/all county map.html" target="_blank" rel="noopener">
+    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/all%20county%20map.html" target="_blank" rel="noopener">
       <span class="ql-emoji" aria-hidden="true">🗺️</span>
-      <span class="ql-text">
-        <span class="ql-heading">County Maps — CCBHC, CTC & Crisis</span>
-        <span class="ql-sub">Coverage & access by county</span>
-      </span>
+      <span class="ql-text"><span class="ql-heading">County Maps — CCBHC, CTC & Crisis</span><span class="ql-sub">Coverage & access by county</span></span>
+    </a>
+    <!-- NEW: Facility & Emergency -->
+    <a class="ql-card" href="https://koushiktripurari.github.io/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/Facility&amp;Emergencypage.html" target="_blank" rel="noopener">
+      <span class="ql-emoji" aria-hidden="true">🏥</span>
+      <span class="ql-text"><span class="ql-heading">Facility &amp; Emergency</span><span class="ql-sub">Locations, capacity, ER resources</span></span>
     </a>
   </div>
 </section>
 
-<!-- ====== Minimal Styles ====== -->
 <style>
-  :root{
-    --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb;
-    --ql-card:#f9fafb; --ql-card-hover:#eef2ff; --ql-border:#e5e7eb;
-    --ql-shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04);
-  }
+  :root{ --ql-ink:#111827; --ql-sub:#6b7280; --ql-bg:#ffffff; --ql-line:#e5e7eb; --ql-card:#f9fafb; --ql-card-hover:#eef2ff; --ql-border:#e5e7eb; --ql-shadow:0 1px 2px rgba(0,0,0,.06), 0 4px 10px rgba(0,0,0,.04); }
   .quick-links{margin:24px 0; padding:8px 0}
   .ql-title{margin:0 0 12px; font:600 18px/1.3 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial; color:var(--ql-ink)}
-  .ql-grid{
-    display:grid; gap:12px;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  }
-  .ql-card{
-    display:flex; gap:12px; align-items:center;
-    padding:14px 16px; border-radius:14px;
-    background:var(--ql-card); border:1px solid var(--ql-border);
-    text-decoration:none; color:var(--ql-ink);
-    box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;
-  }
+  .ql-grid{display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));}
+  .ql-card{display:flex; gap:12px; align-items:center; padding:14px 16px; border-radius:14px; background:var(--ql-card); border:1px solid #efefef; text-decoration:none; color:var(--ql-ink); box-shadow:var(--ql-shadow); transition:transform .12s ease, background .12s ease, border-color .12s ease;}
   .ql-card:hover{ transform:translateY(-2px); background:var(--ql-card-hover); border-color:#c7d2fe }
   .ql-emoji{font-size:22px}
   .ql-text{display:flex; flex-direction:column}
   .ql-heading{font-weight:700}
   .ql-sub{font-size:12px; color:var(--ql-sub)}
 </style>
-
 </body>
 </html>
+
 
 
