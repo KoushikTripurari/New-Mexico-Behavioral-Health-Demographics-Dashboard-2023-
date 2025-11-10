@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Complex Case Discharge Delay — Albuquerque Hospitals Pilot</title>
+
+<style>
+  :root{
+    --ink:#111827; --sub:#4b5563; --bg:#f7f8fa; --card:#ffffff; --line:#e5e7eb;
+    --brand:#0ea5e9; --brand-2:#22c55e; --warn:#f59e0b; --danger:#ef4444; --muted:#9ca3af; --ring:rgba(14,165,233,.35);
+  }
+  [data-theme="dark"]{
+    --ink:#e5e7eb; --sub:#a1a1aa; --bg:#0b0f14; --card:#0f1720; --line:#1f2a37;
+    --brand:#38bdf8; --brand-2:#34d399; --warn:#fbbf24; --danger:#f87171; --muted:#6b7280; --ring:rgba(56,189,248,.35);
+  }
+  html,body{height:100%}
+  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial,"Helvetica Neue";background:var(--bg);color:var(--ink);}
+  a{color:var(--brand);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .container{max-width:100%;margin:0 auto;padding:24px}
+  header{position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,0));backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .topbar{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:12px 24px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:12px;background:conic-gradient(from 180deg at 50% 50%, var(--brand), var(--brand-2), #f97316, var(--brand)); animation:spin 6s linear infinite;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+  .title{font-weight:700;letter-spacing:.2px}
+  .muted{color:var(--sub)}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);cursor:pointer;transition:.2s; position:relative}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.08)}
+  .btn.primary{background:linear-gradient(90deg, #a855f7, #f97316, #06b6d4);border:none;color:white}
+  .grid{display:grid;gap:16px}
+  @media(min-width:900px){ .grid.cols-3{grid-template-columns:1.1fr .9fr} }
+  .card{background:rgba(255,255,255,.9);border:1px solid #e9d5ff;border-radius:16px;padding:18px;box-shadow:0 6px 24px rgba(0,0,0,.04)}
+  .hero{display:grid;gap:16px;align-items:center;padding:20px 24px}
+  @media(min-width:900px){.hero{grid-template-columns:1.2fr .8fr}}
+  .big{font-size:clamp(22px, 2.6vw, 34px);font-weight:800;line-height:1.15;margin:0}
+  .sub{margin:6px 0 0 0;color:var(--sub)}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px dashed var(--line);padding:8px 12px;border-radius:999px;color:var(--sub);background:rgba(0,0,0,.02)}
+  details{border:1px solid var(--line);border-radius:14px;padding:14px;background:var(--card)}
+  details+details{margin-top:10px}
+  summary{cursor:pointer;font-weight:600;display:flex;align-items:center;gap:10px}
+  .tag{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--sub)}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .checklist li{list-style:none;display:flex;align-items:flex-start;gap:10px;margin:10px 0}
+  .checklist input{width:18px;height:18px}
+  .kbd{font-family:ui-monospace,Consolas,monospace;background:rgba(0,0,0,.06);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+  .inline-help{font-size:13px;color:var(--sub)}
+  .search{width:100%;padding:10px 12px;border:1px solid var(--line);background:var(--card);border-radius:12px}
+  .glossary dt{font-weight:700;margin-top:10px}
+  .glossary dd{margin:4px 0 10px 0;color:var(--sub)}
+  .toast{position:fixed;bottom:18px;right:18px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.15);opacity:0;transform:translateY(10px);transition:.2s}
+  .toast.show{opacity:1;transform:translateY(0)}
+  /* Colorful theme bg + animations */
+  body{
+    background-image: radial-gradient(1200px 400px at 10% -10%, #ffedd5 0, transparent 40%),
+                      radial-gradient(1200px 400px at 110% 10%, #e0f2fe 0, transparent 42%),
+                      radial-gradient(1200px 500px at 50% 120%, #f5d0fe 0, transparent 45%);
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .marquee{display:flex;overflow:hidden;gap:24px;border:2px dashed #e9d5ff;border-radius:16px;padding:8px;background:#fff}
+  .marquee .track{display:flex;gap:18px}
+  .marquee .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,#fde68a,#fbcfe8);border:1px solid #fecdd3;font-weight:600}
+  .ribbon{height:6px;border-radius:999px;background:linear-gradient(90deg,#06b6d4,#a855f7,#f97316,#06b6d4);background-size:200% 100%;animation:ribbon 6s linear infinite;margin:6px 0 12px}
+  @keyframes ribbon{0%{background-position:0 0}100%{background-position:200% 0}}
+  .helpfab2{position:fixed;right:18px;bottom:78px;z-index:100;background:linear-gradient(135deg,#a855f7,#06b6d4);color:#fff;border:none;border-radius:999px;padding:12px 16px;box-shadow:0 12px 28px rgba(0,0,0,.25);cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;transition:transform .2s}
+  .helpfab2:hover{transform:translateY(-2px)}
+  .askfab{position:fixed;right:18px;bottom:18px;z-index:100;background:linear-gradient(135deg,#22c55e,#06b6d4);color:#fff;border:none;border-radius:999px;padding:14px 18px;box-shadow:0 12px 28px rgba(0,0,0,.25);cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;transition:transform .2s}
+  .askfab:hover{transform:translateY(-2px)}
+  .askfab .pulse{width:10px;height:10px;border-radius:999px;background:#fff;box-shadow:0 0 0 0 rgba(255,255,255,.6);animation:pulse 2s ease-out infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}70%{box-shadow:0 0 0 16px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+  /* Glow highlight for Email Snippets */
+  @keyframes pulseGlow {0%{box-shadow:0 0 0px 0 rgba(34,197,94,0);border-color:transparent}25%{box-shadow:0 0 15px 5px rgba(34,197,94,.5);border-color:#22c55e}50%{box-shadow:0 0 25px 8px rgba(34,197,94,.7);border-color:#16a34a}75%{box-shadow:0 0 15px 5px rgba(34,197,94,.5);border-color:#22c55e}100%{box-shadow:0 0 0px 0 rgba(34,197,94,0);border-color:transparent}}
+  #emailSnippets.glow-highlight{animation:pulseGlow 2s ease-in-out 2;border:4px solid #22c55e !important;border-radius:16px;transition:border .3s}
+  /* Print */
+  @media print{header,.btn,.search,.toast,.helpfab2,.askfab{display:none !important} body{background:#fff} .card{box-shadow:none}}
+  /* Copied badge */
+  .copied-badge{position:absolute; right:-6px; top:-8px; background:#22c55e; color:#fff; font-size:12px; padding:4px 8px; border-radius:999px; box-shadow:0 6px 16px rgba(34,197,94,.35); animation:copypop .9s ease forwards}
+  @keyframes copypop{0%{transform:translateY(6px) scale(.9); opacity:0}30%{transform:translateY(-4px) scale(1); opacity:1}100%{transform:translateY(-16px) scale(.98); opacity:0}}
+</style>
+</head>
+
+<body>
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div class="title">Complex Case Discharge Delay — Albuquerque Hospitals Pilot</div>
+          <div class="muted" style="font-size:12px">Interactive survey instructions & data collection guide</div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="themeToggle" aria-pressed="false" title="Toggle dark mode">🌙 Theme</button>
+        <button class="btn" id="printBtn" title="Print or save as PDF">🖨️ Print</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="marquee" aria-label="Highlights">
+      <div class="track">
+        <span class="badge">🗓️ Monthly reporting</span>
+        <span class="badge">🏥 Albuquerque hospitals</span>
+        <span class="badge">✅ Inclusion checklist</span>
+        <span class="badge">🔐 No Protected Health Information (PHI) collected</span>
+      </div>
+    </div>
+
+    <section class="hero card" role="region" aria-label="Overview">
+      <div>
+        <p class="pill">📌 Pilot window & access · <span class="muted">See Steps 1–2 below</span></p>
+        <h1 class="big">Complex Case Discharge Delay — Albuquerque Hospitals Pilot</h1>
+        <p class="sub">This interactive guide walks teams through <strong>what to collect</strong> and <strong>how to report cases</strong>. Use quick actions to expand sections, practice with the demo form, and print a training PDF.</p>
+        <div class="row" style="margin-top:12px">
+          <button id="startGuideBtn" class="btn primary">Start the 2-step guide</button>
+          <button id="openGlossaryBtn" class="btn">Open glossary</button>
+        </div>
+      </div>
+      <div class="card" aria-label="Quick actions" style="border-style:dashed">
+        <div class="row" style="flex-wrap:wrap;gap:8px">
+          <button class="btn" id="expandAllBtn">➕ Expand all</button>
+          <button class="btn" id="collapseAllBtn">➖ Collapse all</button>
+          <button class="btn" id="checkAllBtn">☑️ Check all</button>
+          <button class="btn" id="clearAllBtn">⬜ Clear all</button>
+          <button id="demoBtn" class="btn" type="button">🧪 Demo form</button>
+          <button class="btn" id="printBtn2">🖨️ Print</button>
+        </div>
+        <p class="inline-help" style="margin-top:8px">Tip: Your checklist selections are saved in this browser.</p>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Visual guide">
+      <h2 style="margin-top:0">Quick visual guide</h2>
+      <div class="row" style="gap:16px;flex-wrap:wrap">
+        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="border:1px solid var(--line);border-radius:12px;padding:10px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="border:1px solid var(--line);border-radius:12px;padding:10px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 7v6M9 10h6"/></svg>
+        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="border:1px solid var(--line);border-radius:12px;padding:10px"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/><path d="m7 20 1.5-2 1 1.2"/></svg>
+        <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="border:1px solid var(--line);border-radius:12px;padding:10px"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><rect x="3" y="14" width="18" height="7" rx="2"/></svg>
+      </div>
+      <p class="inline-help">Icons reflect timing, setting, checklist, and reporting.</p>
+    </section>
+
+    <section id="steps" class="grid cols-3">
+      <div class="card">
+        <h2>Step 1 · Collect data <span class="tag">Internal first</span></h2><div class="ribbon"></div>
+        <p class="inline-help">Gather cases that meet <em>all</em> inclusion criteria. You may optionally add cases with fewer avoidable days.</p>
+        <details open>
+          <summary>Inclusion Criteria</summary>
+          <ul class="checklist" data-list="s1">
+            <li><input type="checkbox"> <label>Discharge delays <strong>&gt;96 avoidable hours</strong> (ED &gt;4 days) <em>and/or</em> <strong>&gt;336 avoidable hours</strong> (&gt;14 days)</label></li>
+            <li><input type="checkbox"> <label>Present in hospital between <strong>April 1</strong> and <strong>June 30</strong></label></li>
+            <li><input type="checkbox"> <label><strong>Not</strong> in a swing bed</label></li>
+            <li><input type="checkbox"> <label>Optional: include below-threshold cases (note as such)</label></li>
+          </ul>
+        </details>
+        <details>
+          <summary>Tips for consistency</summary>
+          <ul>
+            <li>Use the downloadable template (CSV/XLSX) to stage case details internally.</li>
+            <li>Verify <em>avoidable hours/days</em> and classification (see glossary).</li>
+            <li>Document data sources (EHR, case management notes, bed management logs).</li>
+          </ul>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>Step 2 · Report cases <span class="tag">Monthly cadence</span></h2><div class="ribbon"></div>
+        <p class="inline-help">Report at least once a month (example cadence: May 9, June 8, July 8).</p>
+        <details open>
+          <summary>How to add a case</summary>
+          <ol class="checklist" data-list="s3">
+            <li><input type="checkbox"> <label>Sign in to the pilot application</label></li>
+            <li><input type="checkbox"> <label>Go to <strong>Case Management</strong></label></li>
+            <li><input type="checkbox"> <label>Select your <strong>Hospital Name</strong></label></li>
+            <li><input type="checkbox"> <label>Click <strong>Add New Case</strong></label></li>
+            <li><input type="checkbox"> <label>Enter required case information and <strong>Save</strong></label></li>
+          </ol>
+        </details>
+        <details>
+          <summary>Edit or delete a case</summary>
+          <ol>
+            <li>Sign in → Case Management → select your hospital</li>
+            <li>Find the case (crosswalk by ID or case characteristics)</li>
+            <li>Click <strong>Edit</strong> or <strong>Delete</strong></li>
+          </ol>
+          <p class="inline-help">Incomplete cases appear <span class="kbd">yellow</span> on the homepage.</p>
+        </details>
+        <div class="row" style="margin-top:10px">
+          <button id="watchDemoBtn" class="btn primary" type="button">🎬 Watch & Try the Demo</button>
+          <button class="btn" data-copy="Report monthly by the agreed cadence (e.g., May 9, June 8, July 8).">📋 Copy reminder text</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="glossary" aria-label="Glossary & definitions">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2>Glossary & Definitions</h2>
+        <div class="ribbon"></div>
+        <input class="search" id="search" placeholder="Search terms (e.g., avoidable hours, guardianship, placement)" aria-label="Filter glossary" />
+      </div>
+      <dl class="glossary" id="gloss">
+        <dt>Avoidable hours/days</dt>
+        <dd>Time when a patient is stabilized and ready for discharge but cannot be discharged due to non-medical barriers.</dd>
+        <dt>Placement setting days</dt>
+        <dd>Days from the first placement request to the notice that placement is available.</dd>
+        <dt>Insurance or financial coverage days</dt>
+        <dd>Days from the first coverage request to the final determination notice.</dd>
+        <dt>Agency service/program eligibility process days</dt>
+        <dd>Days from the first request to the final eligibility determination notice.</dd>
+        <dt>Agency service/program referral process days</dt>
+        <dd>Days from the first request to the final referral determination notice.</dd>
+        <dt>Placement setting screening days</dt>
+        <dd>Days from screening initiation to receipt of the screening determination notice.</dd>
+        <dt>Guardianship days</dt>
+        <dd>Days from guardianship process initiation to finalization.</dd>
+        <dt>Advanced care planning days</dt>
+        <dd>Days from planning initiation to completion (e.g., health proxy).</dd>
+        <dt>Inactivity timeout</dt>
+        <dd>Users are logged out automatically after 15 minutes without activity.</dd>
+      </dl>
+      <div class="inline-help">Tip: Use <span class="kbd">Ctrl/⌘+P</span> to save as PDF.</div>
+    </section>
+
+    <section class="card" aria-label="Survey window">
+      <h2>Survey window</h2>
+      <div class="ribbon"></div>
+      <div class="marquee" role="region" aria-label="Survey dates">
+        <div class="track">
+          <span class="badge">🚀 Start: <strong>November 10, 2025</strong></span>
+          <span class="badge">⏳ Ends: <strong>December 10, 2025</strong></span>
+          <span class="badge">⏱️ Time left: <strong id="countdown">calculating…</strong></span>
+          <span class="badge">📣 Submit before the deadline!</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="emailSnippets" class="card" aria-label="Email snippets">
+      <h2>Email snippets</h2>
+      <div class="ribbon"></div>
+      <div class="card" style="border-style:dashed">
+        <p class="inline-help">One-click copy or launch an email draft. Primary contact: <span class="kbd">ktripurari@salud.unm.edu</span></p>
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <a class="btn" href="mailto:ktripurari@salud.unm.edu?subject=Albuquerque%20Pilot%20%E2%80%94%20Question%2FSupport&body=Hello%20Koushik%2C%0A%0AI%20have%20a%20question%20about%20the%20Complex%20Case%20Discharge%20Delay%20pilot.%20Could%20you%20help%20me%20with%E2%80%A6%0A%0AThanks%2C">✉️ Start email to KT</a>
+          <button class="btn" data-copy="ktripurari@salud.unm.edu">📋 Copy KT email address</button>
+          <button class="btn" data-copy="Requesting access to the complex case discharge delay pilot application. Please enable my account and send the Okta activation link.">🔑 Copy access request</button>
+          <a class="btn" href="mailto:ktripurari@salud.unm.edu?subject=Access%20request%20%E2%80%94%20Complex%20Case%20Pilot&body=Hello%20Koushik%2C%0A%0APlease%20enable%20my%20access%20to%20the%20Complex%20Case%20Discharge%20Delay%20pilot%20application%20and%20send%20the%20Okta%20activation%20link.%0A%0AHospital%2FDept%3A%20%0ARole%3A%20%0APhone%3A%20%0A%0AThank%20you%2C">🔗 Start access request email</a>
+          <button class="btn" data-copy="For technical support related to this pilot, please contact ktripurari@salud.unm.edu.">🛠️ Copy tech support line</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Demo modal (WORKING) -->
+  <dialog id="demo" style="border:none;border-radius:16px;max-width:820px;width:92%;padding:0">
+    <form method="dialog" class="card" style="margin:0">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Demo — Add New Case</h3>
+        <button class="btn" value="close">✖ Close</button>
+      </div>
+      <p class="inline-help">Practice with this demo form. It doesn’t submit data.</p>
+      <div class="sbs">
+        <label>Hospital Name
+          <select class="search" required>
+            <option value="">Select…</option>
+            <option>Hospital A</option>
+            <option>Hospital B</option>
+          </select>
+        </label>
+        <label>Patient Ready for Discharge (date)
+          <input class="search" type="date" required>
+        </label>
+        <label>Discharge Date (actual)
+          <input class="search" type="date" required>
+        </label>
+        <label>Avoidable hours (numeric)
+          <input class="search" type="number" min="0" step="1" placeholder="e.g., 120" required>
+        </label>
+        <label>Setting
+          <select class="search">
+            <option>ED</option>
+            <option>Inpatient</option>
+          </select>
+        </label>
+        <label>Notes
+          <textarea class="search" rows="3" placeholder="Barriers, guardianship status, placement status…"></textarea>
+        </label>
+      </div>
+      <div class="row" style="margin-top:12px;justify-content:flex-end">
+        <button class="btn primary" value="close" onclick="toast('This is a demo only — data is not submitted.')">Save (demo)</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Ask the Expert (simplified email/text) -->
+  <dialog id="expert" style="border:none;border-radius:16px;max-width:640px;width:92%;padding:0">
+    <form method="dialog" class="card" style="margin:0">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h3 style="margin:0">Ask the Expert</h3>
+        <button class="btn" value="close">✖ Close</button>
+      </div>
+      <p class="inline-help">Type your question below and choose how to send it. Message text is required.</p>
+      <textarea id="expertMsg" class="search" rows="6" placeholder="Your question or message…" required></textarea>
+      <div class="row" style="justify-content:flex-end;margin-top:10px">
+        <button class="btn" type="button" id="expertEmailBtn" disabled>✉️ Send Email</button>
+        <button class="btn primary" type="button" id="expertSMSBtn" disabled>💬 Send Text</button>
+      </div>
+      <p class="inline-help" id="expertStatus"></p>
+    </form>
+  </dialog>
+
+  <!-- Floating buttons -->
+  <button class="helpfab2" id="helpBtn" title="Highlight Email Snippets Section">📧 Help</button>
+  <button class="askfab" id="askBtn" title="Ask the expert"><span class="pulse"></span> Ask the Expert</button>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ===== Utilities ===== */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+const toastEl = $('#toast');
+function toast(msg){ if(!toastEl) return; toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(()=>toastEl.classList.remove('show'), 2200); }
+
+function showCopied(el){
+  const tag = document.createElement('span');
+  tag.className = 'copied-badge';
+  tag.textContent = '✅ Copied!';
+  el.appendChild(tag);
+  setTimeout(()=> tag.remove(), 950);
+}
+
+function copyText(t, el){
+  const done = ()=>{ toast('Copied to clipboard'); if(el) showCopied(el); };
+  if(navigator.clipboard?.writeText) navigator.clipboard.writeText(t).then(done).catch(fallback);
+  else fallback();
+  function fallback(){
+    const ta = document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta);
+    ta.focus(); ta.select(); try{ document.execCommand('copy'); done(); } catch{ toast('Select and copy manually'); }
+    document.body.removeChild(ta);
+  }
+}
+
+/* ===== Theme toggle & print ===== */
+const themeBtn = $('#themeToggle');
+const savedTheme = localStorage.getItem('theme');
+if(savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
+themeBtn.addEventListener('click',()=>{
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('theme', next);
+  themeBtn.setAttribute('aria-pressed', next==='dark');
+});
+$('#printBtn').addEventListener('click',()=>window.print());
+$('#printBtn2').addEventListener('click',()=>window.print());
+
+/* ===== Checklist state ===== */
+const lists = ['s1','s3'];
+const key = 'hanys-progress-v1';
+function loadState(){
+  const raw = JSON.parse(localStorage.getItem(key) || '{}');
+  lists.forEach(id=>{
+    const boxes = document.querySelectorAll(`[data-list="${id}"] input[type="checkbox"]`);
+    boxes.forEach((box, i)=>{ box.checked = !!raw[`${id}-${i}`]; box.addEventListener('change',saveState);});
+  });
+}
+function saveState(){
+  const out={};
+  lists.forEach(id=>{
+    const boxes = document.querySelectorAll(`[data-list="${id}"] input[type="checkbox"]`);
+    boxes.forEach((box,i)=> out[`${id}-${i}`]=box.checked);
+  });
+  localStorage.setItem(key, JSON.stringify(out));
+}
+loadState();
+
+/* Expand/Collapse & Check helpers */
+$('#expandAllBtn').addEventListener('click', ()=> $$('details').forEach(d=> d.open=true));
+$('#collapseAllBtn').addEventListener('click', ()=> $$('details').forEach(d=> d.open=false));
+$('#checkAllBtn').addEventListener('click', ()=> { $$('input[type="checkbox"]').forEach(b=> b.checked=true); saveState(); });
+$('#clearAllBtn').addEventListener('click', ()=> { $$('input[type="checkbox"]').forEach(b=> b.checked=false); saveState(); });
+
+/* ===== Smooth scroll buttons ===== */
+$('#startGuideBtn').addEventListener('click', ()=> $('#steps')?.scrollIntoView({behavior:'smooth'}));
+$('#openGlossaryBtn').addEventListener('click', ()=> $('#glossary')?.scrollIntoView({behavior:'smooth'}));
+
+/* ===== Glossary search ===== */
+const gloss = $('#gloss');
+$('#search').addEventListener('input', (e)=>{
+  const q = e.target.value.toLowerCase();
+  const entries=[]; let curTerm=null;
+  gloss.querySelectorAll('dt,dd').forEach(n=>{ if(n.tagName==='DT'){ curTerm=n; entries.push({dt:curTerm, dd:curTerm.nextElementSibling}); } });
+  entries.forEach(({dt,dd})=>{
+    const hit = dt.textContent.toLowerCase().includes(q) || dd.textContent.toLowerCase().includes(q);
+    dt.style.display = dd.style.display = (q && !hit) ? 'none' : '';
+  });
+});
+
+/* ===== Countdown ===== */
+(function countdown(){
+  const el = document.getElementById('countdown'); if(!el) return;
+  const end = new Date('2025-12-10T23:59:59');
+  function tick(){
+    const now = new Date();
+    let diff = Math.max(0, end - now);
+    const d = Math.floor(diff/86400000); diff -= d*86400000;
+    const h = Math.floor(diff/3600000); diff -= h*3600000;
+    const m = Math.floor(diff/60000); diff -= m*60000;
+    const s = Math.floor(diff/1000);
+    el.textContent = `${d}d ${h}h ${m}m ${s}s`;
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+/* ===== Email snippet UX ===== */
+document.querySelectorAll('#emailSnippets a[href^="mailto:"]').forEach(a=>{
+  a.addEventListener('click',()=> toast('Opening your email app…'));
+});
+document.querySelectorAll('#emailSnippets button[data-copy]').forEach(btn=>{
+  btn.addEventListener('click', ()=> copyText(btn.getAttribute('data-copy')||'', btn));
+});
+
+/* ===== Help glow button ===== */
+$('#helpBtn').addEventListener('click', ()=>{
+  const emailSection = document.getElementById('emailSnippets');
+  if (!emailSection) return;
+  emailSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  emailSection.classList.add('glow-highlight');
+  setTimeout(()=> emailSection.classList.remove('glow-highlight'), 3000);
+});
+
+/* ===== Demo dialog (FIXED) ===== */
+function openDemo(){
+  const dlg = document.getElementById('demo');
+  if (!dlg) return;
+  if (typeof dlg.showModal === 'function') dlg.showModal();
+  else dlg.setAttribute('open',''); // fallback
+}
+document.getElementById('demoBtn').addEventListener('click', openDemo);
+document.getElementById('watchDemoBtn').addEventListener('click', openDemo);
+
+/* ===== Expert dialog (simple email/SMS) ===== */
+function startEmail(addr, subject, body){
+  const url = `mailto:${addr}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = url; toast('Opening your email app…');
+}
+function openExpert(){
+  const dlg = document.getElementById('expert'); if(!dlg) return;
+  if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open','');
+  const msgEl = document.getElementById('expertMsg');
+  const emailBtn = document.getElementById('expertEmailBtn');
+  const smsBtn = document.getElementById('expertSMSBtn');
+  const status = document.getElementById('expertStatus');
+  const enable = ()=>{ const has=(msgEl.value||'').trim().length>0; emailBtn.disabled = smsBtn.disabled = !has; };
+  enable(); msgEl.addEventListener('input', enable);
+  emailBtn.onclick = ()=>{
+    const body = `${msgEl.value}\n\n— Sent from Ask-the-Expert (${new Date().toLocaleString()})`;
+    startEmail('ktripurari@salud.unm.edu','Ask the Expert — Question', body);
+    status.textContent = 'Opening your email app…';
+  };
+  smsBtn.onclick = ()=>{
+    const body = `${msgEl.value} — Ask-the-Expert (${new Date().toLocaleString()})`;
+    window.location.href = `sms:+13175839106?&body=${encodeURIComponent(body)}`;
+    status.textContent = 'Opening your texting app…';
+  };
+  msgEl.focus();
+}
+document.getElementById('askBtn').addEventListener('click', openExpert);
+</script>
+</body>
+</html>
