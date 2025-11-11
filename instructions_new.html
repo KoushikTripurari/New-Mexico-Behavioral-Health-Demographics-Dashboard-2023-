@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Complex Case Discharge Delay — Pilot Instructions</title>
+
+<style>
+  /* === THEME (Turquoise + UNM accents) === */
+  :root{
+    --turquoise:#0c8a96;
+    --turquoise-600:#0d6f77;
+    --turquoise-200:#bfe7ea;
+    --unm-cherry:#BA0C2F;
+    --unm-gold:#FFC600;
+    --ink:#122125;
+    --muted:#5a6b70;
+    --card:#ffffff;
+    --bg:#f7fbfb;
+    --line:#e6f1f2;
+    --ring:rgba(12,138,150,.25);
+    --shadow:0 10px 30px rgba(12,138,150,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial}
+  a{color:var(--turquoise);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Full-width layout */
+  .wrap{width:100%;max-width:none;margin:0}
+
+  /* HERO */
+  .hero{width:100%;background:linear-gradient(135deg,var(--turquoise) 0%,var(--turquoise-600) 60%);color:#fff;position:relative;overflow:hidden}
+  .hero-inner{padding:64px 24px 36px;display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .hero:after{content:"";position:absolute;inset:auto -20% -40% -20%;height:220px;background:radial-gradient(ellipse at center,rgba(255,255,255,.22),rgba(255,255,255,0) 60%);pointer-events:none}
+
+  /* Animated emblem logo (ALWAYS rotating) */
+  .logo{flex:0 0 110px;height:110px;position:relative}
+  .logo svg{width:110px;height:110px;display:block;filter:drop-shadow(0 0 12px rgba(20,195,207,.45))}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  @keyframes orbit{to{transform:rotate(360deg)}}
+  .spin-logo{animation:spin 10s linear infinite}          /* <- always rotate */
+  .ring-outer{transform-origin:50% 50%;animation:spin 5s linear infinite}
+  .ring-inner{transform-origin:50% 50%;animation:spin 3.5s linear reverse infinite}
+  .dot{transform-origin:50% 50%;animation:pulse 2.2s ease-in-out infinite}
+  .orb{transform-origin:50% 50%;animation:orbit 6s linear infinite}
+  .orb.fast{animation-duration:4s}
+  .orb.slow{animation-duration:8s}
+
+  .kicker{display:inline-block;margin-bottom:10px;padding:6px 12px;border:1px solid rgba(255,255,255,.5);border-radius:999px;color:#eaffff;background:rgba(255,255,255,.08);backdrop-filter:saturate(1.2) blur(2px);font-size:14px}
+  .title{margin:0;line-height:1.05;letter-spacing:.2px;font-weight:800;font-size:clamp(42px,6vw,72px)}
+  .subtitle{margin:8px 0 0;color:#e7fbfd;max-width:1200px;font-size:clamp(16px,2.4vw,20px)}
+
+  /* Sections */
+  .section{width:100%;padding:18px 24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px}
+  .card h2{margin:4px 0 12px;font-size:22px;display:flex;align-items:center;gap:8px}
+  .card h3{margin:14px 0 8px;font-size:16px;color:var(--muted)}
+  .note{background:var(--turquoise-200);border:1px solid var(--line);color:#0b4e55;padding:10px 12px;border-radius:12px}
+  .keyline{border-left:4px solid var(--turquoise);padding-left:12px;margin:10px 0}
+
+  /* Golden Yellow Glow for every block */
+  @keyframes glowGold{
+    0%   { box-shadow:0 0 0 rgba(255,198,0,0) }
+    50%  { box-shadow:0 0 34px rgba(255,198,0,.45),0 0 64px rgba(255,198,0,.22) }
+    100% { box-shadow:0 0 0 rgba(255,198,0,0) }
+  }
+  .card{
+    position:relative;overflow:hidden;
+    transform:translateY(6px);
+    transition:transform .5s ease, box-shadow .5s ease;
+    animation:glowGold 6s ease-in-out infinite;
+  }
+  .card:hover{transform:translateY(0)}
+  /* golden sliding accent bar */
+  .card .motion-accent{
+    position:absolute;inset:auto 0 0 0;height:3px;
+    background:linear-gradient(90deg,transparent, rgba(255,198,0,.85), transparent);
+    opacity:.95;transform:translateX(-100%);animation:slidebar 4s linear infinite
+  }
+  @keyframes slidebar{to{transform:translateX(100%)}}
+
+  /* Flip card grid for Working Definitions */
+  .flipgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .flip{perspective:1000px}
+  .flip-inner{position:relative;width:100%;height:170px;transition:transform .7s;transform-style:preserve-3d}
+  .flip.flip-active .flip-inner{transform:rotateY(180deg)}
+  .flip-face{position:absolute;inset:0;border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:14px;backface-visibility:hidden}
+  .flip-front h4{margin:0 0 6px;font-size:16px}
+  .flip-front .meta{color:var(--muted);font-size:12px}
+  .flip-back{transform:rotateY(180deg);color:#103b40}
+  .flip .hint{margin-top:auto;font-size:12px;color:var(--muted)}
+
+  /* Toolbar + buttons + chips */
+  .defs .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:2px 0 12px}
+  .defs input[type="search"]{flex:1 1 260px;max-width:520px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .btn{appearance:none;border:1px solid var(--line);background:#eaf6f7;color:#0b4e55;border-radius:12px;padding:8px 12px;cursor:pointer}
+  .btn:hover{filter:brightness(.98)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-block;padding:4px 10px;border-radius:999px;background:#eaf6f7;border:1px solid var(--line);color:#0b4e55;font-size:13px;cursor:pointer}
+  .chip.active{background:var(--turquoise-200)}
+
+  /* Centered UNM survey CTA (continuous glow) */
+  @keyframes glowPulseBtn {
+    0%   { box-shadow: 0 0 16px rgba(0,122,135,.45), 0 0 28px rgba(186,12,47,.18); }
+    50%  { box-shadow: 0 0 30px rgba(0,122,135,.75), 0 0 60px rgba(186,12,47,.35); }
+    100% { box-shadow: 0 0 16px rgba(0,122,135,.45), 0 0 28px rgba(186,12,47,.18); }
+  }
+  .survey-cta{ text-align:center; margin:32px 0 }
+  .survey-cta p{ font-weight:800; font-size:20px; color:var(--unm-cherry); margin-bottom:16px }
+  .btn-unm{
+    display:inline-block;background:#007A87;color:#fff;font-weight:800;font-size:18px;
+    padding:16px 36px;border-radius:14px;border:2px solid #005E69;text-decoration:none;
+    transition:transform .2s ease;animation:glowPulseBtn 2.4s ease-in-out infinite
+  }
+  .btn-unm:hover{ transform:translateY(-1px) }
+
+  /* Footer */
+  footer{padding:16px 24px 40px;color:var(--muted);font-size:14px}
+
+  /* Focus */
+  :focus-visible{outline:3px solid var(--ring);outline-offset:2px;border-radius:6px}
+</style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <header class="hero wrap">
+    <div class="hero-inner wrap">
+      <!-- Animated logo (svg) -->
+      <div class="logo" aria-hidden="true">
+        <svg class="spin-logo" viewBox="0 0 100 100" role="img" aria-label="Animated Turquoise Emblem">
+          <defs>
+            <linearGradient id="tg" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stop-color="#14c3cf"/>
+              <stop offset="100%" stop-color="#0c8a96"/>
+            </linearGradient>
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="b"/>
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#tg)" stroke-width="7" opacity=".28" filter="url(#glow)"/>
+          <g class="ring-outer">
+            <circle cx="50" cy="50" r="34" fill="none" stroke="url(#tg)" stroke-width="5" stroke-dasharray="120 38" stroke-linecap="round"/>
+          </g>
+          <g class="ring-inner">
+            <circle cx="50" cy="50" r="23" fill="none" stroke="url(#tg)" stroke-width="5" stroke-dasharray="66 22" stroke-linecap="round"/>
+          </g>
+          <g class="orb slow"><circle cx="50" cy="18" r="4.2" fill="#ffffff"/></g>
+          <g class="orb"><circle cx="50" cy="14" r="3.4" fill="#e6feff"/></g>
+          <g class="orb fast"><circle cx="50" cy="12" r="2.8" fill="#c5fbff"/></g>
+          <g class="dot"><circle cx="50" cy="50" r="2.6" fill="#ffffff"/></g>
+        </svg>
+      </div>
+
+      <div class="text">
+        <span class="kicker">Behavioral Health • Pilot</span>
+        <h1 class="title">Complex Case Discharge Delay — Pilot Instructions</h1>
+        <p class="subtitle">Quick-start steps, reporting cadence, flip-card definitions, and contacts — in a turquoise, full-width layout.</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- SECTION: Collect data -->
+  <section class="section wrap">
+    <div class="card">
+      <div class="motion-accent"></div>
+      <h2>
+        <span class="clip" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M6 4h9l3 3v13H6z" stroke="#0c8a96" stroke-width="1.6"/>
+            <path d="M15 4v4h4" stroke="#14c3cf" stroke-width="1.6"/>
+          </svg>
+        </span>
+        1) Collect data internally
+      </h2>
+      <div class="keyline">Include cases that meet all criteria below; you may optionally include shorter delays.</div>
+      <ul>
+        <li><strong>Avoidable delay</strong>: &gt; 96 hours (ED) and/or &gt; 336 hours (inpatient).</li>
+        <li><strong>Period</strong>: Present between <em>April 1 – June 30</em>.</li>
+        <li><strong>Exclusion</strong>: Not in a swing bed.</li>
+      </ul>
+
+      <h2>2) Get portal access</h2>
+      <ol>
+        <li>Email <a href="mailto:complexcase@hanys.org">complexcase@hanys.org</a> to request access.</li>
+        <li>Activate your account via the Okta link (check spam if needed).</li>
+        <li>If not activated within 7 days, request a new activation email.</li>
+      </ol>
+
+      <h2>3) Report cases (monthly)</h2>
+      <p class="note">Report at least once a month (e.g., by May 9, June 8, July 8).</p>
+      <h3>How to add a case</h3>
+      <ol>
+        <li>Sign in to the pilot application.</li>
+        <li>Choose <em>Case Management</em>.</li>
+        <li>Select your <em>Hospital Name</em>.</li>
+        <li>Click <em>Add New Case</em> and complete required fields.</li>
+        <li>Click <em>Save</em>.</li>
+      </ol>
+      <p class="muted">You’ll be logged out after 15 minutes of inactivity; incomplete cases appear highlighted on the homepage.</p>
+    </div>
+  </section>
+
+  <!-- SECTION: Working definitions (flip cards) -->
+  <section class="section wrap">
+    <div class="card">
+      <div class="motion-accent"></div>
+      <h2>
+        <span class="clip" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="#0c8a96" stroke-width="1.6"/>
+            <path d="M8 7h8M8 12h8M8 17h5" stroke="#14c3cf" stroke-width="1.6"/>
+          </svg>
+        </span>
+        Working definitions (flip cards)
+      </h2>
+
+      <div class="defs" id="defs">
+        <div class="toolbar">
+          <input id="defSearch" type="search" placeholder="Search… e.g., guardianship, placement" aria-label="Search working definitions"/>
+          <button class="btn" id="btnExpand">Flip all</button>
+          <button class="btn" id="btnCollapse">Reset all</button>
+          <div class="chips" aria-label="Quick filters">
+            <span class="chip" data-filter="placement">Placement</span>
+            <span class="chip" data-filter="coverage">Coverage</span>
+            <span class="chip" data-filter="process">Process</span>
+            <span class="chip" data-filter="legal">Legal</span>
+          </div>
+        </div>
+
+        <div class="flipgrid" id="flipgrid">
+          <div class="flip" tabindex="0" data-tags="coverage process">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Insurance/financial coverage days</h4>
+                <div class="meta">Coverage • Process</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                From first coverage request to final determination (approval/denial). Include insurer correspondence lags.
+              </div>
+            </div>
+          </div>
+
+          <div class="flip" tabindex="0" data-tags="placement process">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Placement setting days</h4>
+                <div class="meta">Placement • Process</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                From first placement request to notice of availability (bed/slot). Track separate attempts if parallel.
+              </div>
+            </div>
+          </div>
+
+          <div class="flip" tabindex="0" data-tags="process">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Agency eligibility process days</h4>
+                <div class="meta">Process</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                From initial eligibility request to final eligibility determination by the agency.
+              </div>
+            </div>
+          </div>
+
+          <div class="flip" tabindex="0" data-tags="process">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Agency referral process days</h4>
+                <div class="meta">Process</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                From first referral submission to final referral determination (accept/decline/waitlist).
+              </div>
+            </div>
+          </div>
+
+          <div class="flip" tabindex="0" data-tags="process">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Placement screening days</h4>
+                <div class="meta">Process</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                From screening start to screening determination; include back-and-forth for additional info.
+              </div>
+            </div>
+          </div>
+
+          <div class="flip" tabindex="0" data-tags="legal">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Guardianship days</h4>
+                <div class="meta">Legal</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                From initiation of guardianship proceedings to legal finalization that enables discharge decisions.
+              </div>
+            </div>
+          </div>
+
+          <div class="flip" tabindex="0" data-tags="process">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Advance care planning days</h4>
+                <div class="meta">Process</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                From start of advance care planning to completion (e.g., health care proxy, MOLST/POST forms).
+              </div>
+            </div>
+          </div>
+
+          <div class="flip" tabindex="0" data-tags="process">
+            <div class="flip-inner">
+              <div class="flip-face flip-front">
+                <h4>Avoidable hours/days</h4>
+                <div class="meta">Process</div>
+                <div class="hint">Tap/Enter to flip</div>
+              </div>
+              <div class="flip-face flip-back">
+                Time after stabilization/readiness until discharge occurs; split by ED (>96h) or IP (>336h) when applicable.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: Support & Links + Survey CTA -->
+  <section class="section wrap">
+    <div class="card">
+      <div class="motion-accent"></div>
+      <h2>
+        <span class="clip" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M7 12a5 5 0 0 1 5-5h2" stroke="#0c8a96" stroke-width="1.6"/>
+            <path d="M17 12a5 5 0 0 1-5 5H10" stroke="#14c3cf" stroke-width="1.6"/>
+            <path d="M14 10l4-4" stroke="#0c8a96" stroke-width="1.6"/>
+          </svg>
+        </span>
+        Support & Links
+      </h2>
+      <ul>
+        <li>Technical questions: <a href="mailto:complexcase@hanys.org">complexcase@hanys.org</a></li>
+        <li>Program questions: <a href="mailto:sduvall@hanys.org">sduvall@hanys.org</a></li>
+        <li>Pilot portal: <a href="https://quality.askflorence.org/ComplexCaseDischargeDelay/">Open application</a></li>
+        <li>Fillable data tool (PDF): <a href="https://www.hanys.org/behavioral_health/docs/2022_complex_case_data_collection_tool_fillable.pdf">Download</a></li>
+      </ul>
+
+      <!-- Centered UNM Survey CTA (replace YOUR_SURVEY_URL) -->
+      <div class="survey-cta">
+        <p>Access the survey here</p>
+        <a class="btn-unm" href="YOUR_SURVEY_URL" target="_blank" rel="noopener">
+          Open Survey Form
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="wrap">
+    <p>Turquoise theme • Full-width layout • Always-rotating emblem logo • Golden glow blocks • Flip-card definitions with search & filters.</p>
+  </footer>
+
+<script>
+  // Make sure blocks display (no hidden reveal state)
+  document.querySelectorAll('.card').forEach(el=>el.classList.add('show'));
+
+  // Flip cards: search, filter, and flip
+  const q = document.getElementById('defSearch');
+  const grid = document.getElementById('flipgrid');
+  const flips = grid ? Array.from(grid.querySelectorAll('.flip')) : [];
+  const chips = Array.from(document.querySelectorAll('.chip'));
+  const btnExpand = document.getElementById('btnExpand');
+  const btnCollapse = document.getElementById('btnCollapse');
+  let activeTag = null;
+
+  function applyFilters(){
+    const needle = (q?.value || '').toLowerCase();
+    flips.forEach(card => {
+      const tags = (card.dataset.tags || '').toLowerCase();
+      const title = card.querySelector('h4').textContent.toLowerCase();
+      const back = card.querySelector('.flip-back').textContent.toLowerCase();
+      const textMatch = !needle || title.includes(needle) || back.includes(needle);
+      const tagMatch = !activeTag || tags.includes(activeTag);
+      card.style.display = (textMatch && tagMatch) ? '' : 'none';
+    });
+  }
+  q?.addEventListener('input', applyFilters);
+  chips.forEach(c => c.addEventListener('click', () => {
+    if(activeTag === c.dataset.filter){ activeTag = null; chips.forEach(x => x.classList.remove('active')); }
+    else { activeTag = c.dataset.filter; chips.forEach(x => x.classList.toggle('active', x===c)); }
+    applyFilters();
+  }));
+
+  function toggleFlip(el){ el.classList.toggle('flip-active'); }
+  flips.forEach(f => {
+    f.addEventListener('click', e => { if(e.target.closest('.flip')) toggleFlip(f); });
+    f.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggleFlip(f);} });
+  });
+
+  btnExpand?.addEventListener('click', ()=> flips.forEach(f=>f.classList.add('flip-active')));
+  btnCollapse?.addEventListener('click', ()=> flips.forEach(f=>f.classList.remove('flip-active')));
+</script>
+</body>
+</html>
