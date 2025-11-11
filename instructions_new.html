@@ -40,7 +40,7 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
   @keyframes orbit{to{transform:rotate(360deg)}}
-  .spin-logo{animation:spin 10s linear infinite}          /* <- always rotate */
+  .spin-logo{animation:spin 10s linear infinite}
   .ring-outer{transform-origin:50% 50%;animation:spin 5s linear infinite}
   .ring-inner{transform-origin:50% 50%;animation:spin 3.5s linear reverse infinite}
   .dot{transform-origin:50% 50%;animation:pulse 2.2s ease-in-out infinite}
@@ -73,7 +73,6 @@
     animation:glowGold 6s ease-in-out infinite;
   }
   .card:hover{transform:translateY(0)}
-  /* golden sliding accent bar */
   .card .motion-accent{
     position:absolute;inset:auto 0 0 0;height:3px;
     background:linear-gradient(90deg,transparent, rgba(255,198,0,.85), transparent);
@@ -81,8 +80,27 @@
   }
   @keyframes slidebar{to{transform:translateX(100%)}}
 
-  /* Flip card grid for Working Definitions */
-  .flipgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  /* --- NEW: Two-column layout INSIDE the first card --- */
+  .card .grid-2{
+    display:grid;
+    grid-template-columns: 1.4fr 1fr;  /* left larger than right */
+    gap:16px;
+    align-items:start;
+  }
+  @media (max-width: 960px){
+    .card .grid-2{ grid-template-columns:1fr; }
+  }
+  /* Right-side definitions panel */
+  .card .side-panel{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    background:#fff;
+  }
+  .card .side-panel h2{ margin:4px 0 12px; font-size:20px; }
+
+  /* Flip card grid */
+  .flipgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
   .flip{perspective:1000px}
   .flip-inner{position:relative;width:100%;height:170px;transition:transform .7s;transform-style:preserve-3d}
   .flip.flip-active .flip-inner{transform:rotateY(180deg)}
@@ -163,180 +181,184 @@
     </div>
   </header>
 
-  <!-- SECTION: Collect data -->
+  <!-- SECTION: Collect data + Working definitions ON THE RIGHT -->
   <section class="section wrap">
     <div class="card">
       <div class="motion-accent"></div>
-      <h2>
-        <span class="clip" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M6 4h9l3 3v13H6z" stroke="#0c8a96" stroke-width="1.6"/>
-            <path d="M15 4v4h4" stroke="#14c3cf" stroke-width="1.6"/>
-          </svg>
-        </span>
-        1) Collect data internally
-      </h2>
-      <div class="keyline">Include cases that meet all criteria below; you may optionally include shorter delays.</div>
-      <ul>
-        <li><strong>Avoidable delay</strong>: &gt; 96 hours (ED) and/or &gt; 336 hours (inpatient).</li>
-        <li><strong>Period</strong>: Present between <em>April 1 – June 30</em>.</li>
-        <li><strong>Exclusion</strong>: Not in a swing bed.</li>
-      </ul>
 
-      <h2>2) Get portal access</h2>
-      <ol>
-        <li>Email <a href="mailto:complexcase@hanys.org">complexcase@hanys.org</a> to request access.</li>
-        <li>Activate your account via the Okta link (check spam if needed).</li>
-        <li>If not activated within 7 days, request a new activation email.</li>
-      </ol>
+      <div class="grid-2">
+        <!-- LEFT: original steps/content -->
+        <div>
+          <h2>
+            <span class="clip" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M6 4h9l3 3v13H6z" stroke="#0c8a96" stroke-width="1.6"/>
+                <path d="M15 4v4h4" stroke="#14c3cf" stroke-width="1.6"/>
+              </svg>
+            </span>
+            1) Collect data internally
+          </h2>
+          <div class="keyline">Include cases that meet all criteria below; you may optionally include shorter delays.</div>
+          <ul>
+            <li><strong>Avoidable delay</strong>: &gt; 96 hours (ED) and/or &gt; 336 hours (inpatient).</li>
+            <li><strong>Period</strong>: Present between <em>April 1 – June 30</em>.</li>
+            <li><strong>Exclusion</strong>: Not in a swing bed.</li>
+          </ul>
 
-      <h2>3) Report cases (monthly)</h2>
-      <p class="note">Report at least once a month (e.g., by May 9, June 8, July 8).</p>
-      <h3>How to add a case</h3>
-      <ol>
-        <li>Sign in to the pilot application.</li>
-        <li>Choose <em>Case Management</em>.</li>
-        <li>Select your <em>Hospital Name</em>.</li>
-        <li>Click <em>Add New Case</em> and complete required fields.</li>
-        <li>Click <em>Save</em>.</li>
-      </ol>
-      <p class="muted">You’ll be logged out after 15 minutes of inactivity; incomplete cases appear highlighted on the homepage.</p>
-    </div>
-  </section>
+          <h2>2) Get portal access</h2>
+          <ol>
+            <li>Email <a href="mailto:complexcase@hanys.org">complexcase@hanys.org</a> to request access.</li>
+            <li>Activate your account via the Okta link (check spam if needed).</li>
+            <li>If not activated within 7 days, request a new activation email.</li>
+          </ol>
 
-  <!-- SECTION: Working definitions (flip cards) -->
-  <section class="section wrap">
-    <div class="card">
-      <div class="motion-accent"></div>
-      <h2>
-        <span class="clip" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="3" width="18" height="18" rx="3" stroke="#0c8a96" stroke-width="1.6"/>
-            <path d="M8 7h8M8 12h8M8 17h5" stroke="#14c3cf" stroke-width="1.6"/>
-          </svg>
-        </span>
-        Working definitions (flip cards)
-      </h2>
-
-      <div class="defs" id="defs">
-        <div class="toolbar">
-          <input id="defSearch" type="search" placeholder="Search… e.g., guardianship, placement" aria-label="Search working definitions"/>
-          <button class="btn" id="btnExpand">Flip all</button>
-          <button class="btn" id="btnCollapse">Reset all</button>
-          <div class="chips" aria-label="Quick filters">
-            <span class="chip" data-filter="placement">Placement</span>
-            <span class="chip" data-filter="coverage">Coverage</span>
-            <span class="chip" data-filter="process">Process</span>
-            <span class="chip" data-filter="legal">Legal</span>
-          </div>
+          <h2>3) Report cases (monthly)</h2>
+          <p class="note">Report at least once a month (e.g., by May 9, June 8, July 8).</p>
+          <h3>How to add a case</h3>
+          <ol>
+            <li>Sign in to the pilot application.</li>
+            <li>Choose <em>Case Management</em>.</li>
+            <li>Select your <em>Hospital Name</em>.</li>
+            <li>Click <em>Add New Case</em> and complete required fields.</li>
+            <li>Click <em>Save</em>.</li>
+          </ol>
+          <p class="muted">You’ll be logged out after 15 minutes of inactivity; incomplete cases appear highlighted on the homepage.</p>
         </div>
 
-        <div class="flipgrid" id="flipgrid">
-          <div class="flip" tabindex="0" data-tags="coverage process">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Insurance/financial coverage days</h4>
-                <div class="meta">Coverage • Process</div>
-                <div class="hint">Tap/Enter to flip</div>
-              </div>
-              <div class="flip-face flip-back">
-                From first coverage request to final determination (approval/denial). Include insurer correspondence lags.
-              </div>
-            </div>
-          </div>
+        <!-- RIGHT: Working definitions panel -->
+        <aside class="side-panel">
+          <h2>
+            <span class="clip" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="3" stroke="#0c8a96" stroke-width="1.6"/>
+                <path d="M8 7h8M8 12h8M8 17h5" stroke="#14c3cf" stroke-width="1.6"/>
+              </svg>
+            </span>
+            Working definitions
+          </h2>
 
-          <div class="flip" tabindex="0" data-tags="placement process">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Placement setting days</h4>
-                <div class="meta">Placement • Process</div>
-                <div class="hint">Tap/Enter to flip</div>
-              </div>
-              <div class="flip-face flip-back">
-                From first placement request to notice of availability (bed/slot). Track separate attempts if parallel.
-              </div>
+          <div class="defs" id="defs">
+            <div class="toolbar">
+              <input id="defSearch" type="search" placeholder="Search… e.g., guardianship, placement" aria-label="Search working definitions"/>
+              <button class="btn" id="btnExpand" type="button">Flip all</button>
+              <button class="btn" id="btnCollapse" type="button">Reset all</button>
             </div>
-          </div>
 
-          <div class="flip" tabindex="0" data-tags="process">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Agency eligibility process days</h4>
-                <div class="meta">Process</div>
-                <div class="hint">Tap/Enter to flip</div>
-              </div>
-              <div class="flip-face flip-back">
-                From initial eligibility request to final eligibility determination by the agency.
-              </div>
+            <div class="chips" aria-label="Quick filters">
+              <span class="chip" data-filter="placement">Placement</span>
+              <span class="chip" data-filter="coverage">Coverage</span>
+              <span class="chip" data-filter="process">Process</span>
+              <span class="chip" data-filter="legal">Legal</span>
             </div>
-          </div>
 
-          <div class="flip" tabindex="0" data-tags="process">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Agency referral process days</h4>
-                <div class="meta">Process</div>
-                <div class="hint">Tap/Enter to flip</div>
+            <div class="flipgrid" id="flipgrid">
+              <div class="flip" tabindex="0" data-tags="coverage process">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Insurance/financial coverage days</h4>
+                    <div class="meta">Coverage • Process</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    From first coverage request to final determination (approval/denial). Include insurer correspondence lags.
+                  </div>
+                </div>
               </div>
-              <div class="flip-face flip-back">
-                From first referral submission to final referral determination (accept/decline/waitlist).
-              </div>
-            </div>
-          </div>
 
-          <div class="flip" tabindex="0" data-tags="process">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Placement screening days</h4>
-                <div class="meta">Process</div>
-                <div class="hint">Tap/Enter to flip</div>
+              <div class="flip" tabindex="0" data-tags="placement process">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Placement setting days</h4>
+                    <div class="meta">Placement • Process</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    From first placement request to notice of availability (bed/slot). Track separate attempts if parallel.
+                  </div>
+                </div>
               </div>
-              <div class="flip-face flip-back">
-                From screening start to screening determination; include back-and-forth for additional info.
-              </div>
-            </div>
-          </div>
 
-          <div class="flip" tabindex="0" data-tags="legal">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Guardianship days</h4>
-                <div class="meta">Legal</div>
-                <div class="hint">Tap/Enter to flip</div>
+              <div class="flip" tabindex="0" data-tags="process">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Agency eligibility process days</h4>
+                    <div class="meta">Process</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    From initial eligibility request to final eligibility determination by the agency.
+                  </div>
+                </div>
               </div>
-              <div class="flip-face flip-back">
-                From initiation of guardianship proceedings to legal finalization that enables discharge decisions.
-              </div>
-            </div>
-          </div>
 
-          <div class="flip" tabindex="0" data-tags="process">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Advance care planning days</h4>
-                <div class="meta">Process</div>
-                <div class="hint">Tap/Enter to flip</div>
+              <div class="flip" tabindex="0" data-tags="process">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Agency referral process days</h4>
+                    <div class="meta">Process</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    From first referral submission to final referral determination (accept/decline/waitlist).
+                  </div>
+                </div>
               </div>
-              <div class="flip-face flip-back">
-                From start of advance care planning to completion (e.g., health care proxy, MOLST/POST forms).
-              </div>
-            </div>
-          </div>
 
-          <div class="flip" tabindex="0" data-tags="process">
-            <div class="flip-inner">
-              <div class="flip-face flip-front">
-                <h4>Avoidable hours/days</h4>
-                <div class="meta">Process</div>
-                <div class="hint">Tap/Enter to flip</div>
+              <div class="flip" tabindex="0" data-tags="process">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Placement screening days</h4>
+                    <div class="meta">Process</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    From screening start to screening determination; include back-and-forth for additional info.
+                  </div>
+                </div>
               </div>
-              <div class="flip-face flip-back">
-                Time after stabilization/readiness until discharge occurs; split by ED (>96h) or IP (>336h) when applicable.
+
+              <div class="flip" tabindex="0" data-tags="legal">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Guardianship days</h4>
+                    <div class="meta">Legal</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    From initiation of guardianship proceedings to legal finalization that enables discharge decisions.
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
+
+              <div class="flip" tabindex="0" data-tags="process">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Advance care planning days</h4>
+                    <div class="meta">Process</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    From start of advance care planning to completion (e.g., health care proxy, MOLST/POST forms).
+                  </div>
+                </div>
+              </div>
+
+              <div class="flip" tabindex="0" data-tags="process">
+                <div class="flip-inner">
+                  <div class="flip-face flip-front">
+                    <h4>Avoidable hours/days</h4>
+                    <div class="meta">Process</div>
+                    <div class="hint">Tap/Enter to flip</div>
+                  </div>
+                  <div class="flip-face flip-back">
+                    Time after stabilization/readiness until discharge occurs; split by ED (&gt;96h) or IP (&gt;336h) when applicable.
+                  </div>
+                </div>
+              </div>
+            </div><!-- /flipgrid -->
+          </div><!-- /defs -->
+        </aside>
+      </div><!-- /grid-2 -->
     </div>
   </section>
 
