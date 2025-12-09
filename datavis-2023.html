@@ -3,241 +3,495 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>New Mexico Behavioral Health & Demographics Dashboard (2023)</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<title>New Mexico Complex Discharges Data Collection</title>
+
 <style>
-  :root{
-    --bg:#0b0f14; --card:#121821; --ink:#e9eef5; --muted:#a9b6c7;
-    --turquoise:#00C4BC; --cherry:#C8193C; --purple:#7A1FA2; --accent:#29a3ff;
-    --chip-bg:#1a2230; --ring:#2a3a52;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Inter",system-ui}
-  h1{margin:1.25rem auto .25rem;max-width:1200px;padding:0 1.25rem;font-weight:800;font-size:clamp(1.25rem,2.5vw,2rem)}
-  .toolbar{max-width:1200px;margin:.75rem auto 0;padding:0 1.25rem;display:flex;gap:.5rem;flex-wrap:wrap}
-  .btn{
-    background:var(--chip-bg);color:var(--ink);border:1px solid var(--ring);
-    border-radius:999px;padding:.5rem .9rem;font-weight:600;cursor:pointer;transition:.15s;
-  }
-  .btn:hover{border-color:#3a4d6a}
-  .btn.active{outline:2px solid var(--accent);color:var(--accent)}
-  main{max-width:1200px;margin:1rem auto 2rem;padding:0 1.25rem}
-  .grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-  .card{background:var(--card);border:1px solid var(--ring);border-radius:16px;padding:1rem;box-shadow:0 10px 30px rgba(0,0,0,.25)}
-  .card h2{margin:.1rem 0 .6rem;font-size:1.1rem;display:flex;align-items:center;gap:.5rem}
-  .icon-wrap img{width:22px;height:22px;object-fit:contain}
-  ul.insights{list-style:none;margin:.2rem 0 .8rem;padding:0;display:grid;gap:.4rem}
-  .insight-item{display:grid;grid-template-columns:26px 1fr;gap:.55rem;align-items:start}
-  .bullet-icon{width:22px;height:22px;object-fit:contain;border-radius:6px;border:1px solid var(--ring);background:#0d1320;padding:2px}
-  figure{margin:.6rem 0 0;border-radius:12px;overflow:hidden;border:1px solid var(--ring);background:#0e141c}
-  figure img{display:block;width:100%;height:auto}
-  figcaption{font-size:.86rem;color:var(--muted);padding:.5rem .75rem;border-top:1px solid var(--ring);display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
+/* === THEME (Turquoise + UNM accents) === */
+:root{
+    --turquoise:#0c8a96;
+    --turquoise-600:#0d6f77;
+    --turquoise-200:#bfe7ea;
+    --unm-cherry:#BA0C2F;
+    --unm-gold:#FFC600;
+    --ink:#122125;
+    --muted:#5a6b70;
+    --card:#ffffff;
+    --bg:#f7fbfb;
+    --line:#e6f1f2;
+    --ring:rgba(12,138,150,.25);
+    --shadow:0 10px 30px rgba(12,138,150,.12);
+}
+*{box-sizing:border-box}
+html,body{
+    margin:0;
+    padding:0;
+    background:var(--bg);
+    color:var(--ink);
+    font:18px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+a{color:var(--turquoise);text-decoration:none}
+a:hover{text-decoration:underline}
 
-  /* Larger images for the two requested blocks */
-  .big-figure img{width:100%;height:auto;max-height:300px;object-fit:contain}
+/* Full-width layout */
+.wrap{width:100%;max-width:none;margin:0}
 
-  /* Make Gender chart extra large (works even if max-height was ignored) */
-  
+/* HERO */
+.hero{
+    width:100%;
+    background:linear-gradient(135deg,var(--turquoise) 0%,var(--turquoise-600) 60%);
+    color:#fff;
+    position:relative;
+    overflow:hidden
+}
+.hero-inner{
+    padding:64px 24px 36px;
+    display:flex;
+    gap:20px;
+    align-items:center;
+    flex-wrap:wrap
+}
+.hero:after{
+    content:"";
+    position:absolute;
+    inset:auto -20% -40% -20%;
+    height:220px;
+    background:radial-gradient(ellipse at center,rgba(255,255,255,.22),rgba(255,255,255,0) 60%);
+    pointer-events:none
+}
 
-  /* group toggling */
-  .group{display:none}
-  .group.show{display:block}
+/* Logo placeholder (not used currently) */
+.logo{flex:0 0 110px;height:110px;position:relative}
+.logo svg{
+    width:110px;
+    height:110px;
+    display:block;
+    filter:drop-shadow(0 0 12px rgba(20,195,207,.45))
+}
+
+.kicker{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:6px 12px;
+    border:1px solid rgba(255,255,255,.5);
+    border-radius:999px;
+    color:#eaffff;
+    background:rgba(255,255,255,.08);
+    backdrop-filter:saturate(1.2) blur(2px);
+    font-size:16px;
+}
+.title{
+    margin:0;
+    line-height:1.05;
+    letter-spacing:.2px;
+    font-weight:800;
+    font-size:clamp(42px,6vw,72px);
+}
+.subtitle{
+    margin:8px 0 0;
+    color:#e7fbfd;
+    max-width:1200px;
+    font-size:clamp(18px,2.4vw,22px);
+}
+
+/* Sections */
+.section{width:100%;padding:18px 24px}
+.card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+    transform:translateY(6px);
+    transition:transform .5s ease, box-shadow .5s ease;
+    animation:glowGold 6s ease-in-out infinite;
+}
+.card:hover{transform:translateY(0)}
+.card h2{
+    margin:4px 0 12px;
+    font-size:24px;
+    display:flex;
+    align-items:center;
+    gap:8px
+}
+.card h3{
+    margin:14px 0 8px;
+    font-size:18px;
+    color:var(--muted)
+}
+.note{
+    background:var(--turquoise-200);
+    border:1px solid var(--line);
+    color:#0b4e55;
+    padding:10px 12px;
+    border-radius:12px
+}
+.keyline{
+    border-left:4px solid var(--turquoise);
+    padding-left:12px;
+    margin:10px 0
+}
+.muted{
+    color:var(--muted);
+    font-size:16px;
+}
+
+/* Light blue info banner */
+.info-banner{
+    background:#e0f4f8;              /* matches How to Submit Data background */
+    border:1px solid #0c8a96;        /* same border as that box */
+    color:#103b40;
+    padding:10px 18px;
+    border-radius:14px;
+    margin-top:10px;
+    font-size:16px;
+}
+
+/* Golden Yellow Glow for every block */
+@keyframes glowGold{
+    0%   { box-shadow:0 0 0 rgba(255,198,0,0) }
+    50%  { box-shadow:0 0 34px rgba(255,198,0,.45),0 0 64px rgba(255,198,0,.22) }
+    100% { box-shadow:0 0 0 rgba(255,198,0,0) }
+}
+.card .motion-accent{
+    position:absolute;
+    inset:auto 0 0 0;
+    height:3px;
+    background:linear-gradient(90deg,transparent, rgba(255,198,0,.85), transparent);
+    opacity:.95;
+    transform:translateX(-100%);
+    animation:slidebar 4s linear infinite
+}
+@keyframes slidebar{to{transform:translateX(100%)}}
+
+/* Two-column layout INSIDE the first card */
+.card .grid-2{
+    display:grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap:16px;
+    align-items:start;
+}
+@media (max-width: 960px){
+    .card .grid-2{ grid-template-columns:1fr; }
+}
+
+/* Right-side definitions panel (static style) */
+.card .side-panel{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+    background:#e0f4f8;
+}
+
+.card .side-panel h2{
+    margin:4px 0 12px;
+    font-size:26px;
+}
+
+/* Simple definition cards */
+.def-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:8px;
+}
+
+.def-card{
+    background:#ffffff;
+    border-radius:12px;
+    padding:10px 12px;
+    border:1px solid rgba(12,138,150,.18);
+}
+
+.def-card h3{
+    margin:0 0 4px;
+    font-size:20px;
+    color:#0c5f68;
+}
+
+.def-card p{
+    margin:0;
+    font-size:18px;
+    line-height:1.6;
+}
+
+/* Centered UNM survey CTA (continuous glow) */
+@keyframes glowPulseBtn {
+    0%   { box-shadow: 0 0 16px rgba(0,122,135,.45), 0 0 28px rgba(186,12,47,.18); }
+    50%  { box-shadow: 0 0 30px rgba(0,122,135,.75), 0 0 60px rgba(186,12,47,.35); }
+    100% { box-shadow: 0 0 16px rgba(0,122,135,.45), 0 0 28px rgba(186,12,47,.18); }
+}
+.survey-cta{ text-align:center; margin:32px 0 }
+.survey-cta p{
+    font-weight:800;
+    font-size:22px;
+    color:var(--unm-cherry);
+    margin-bottom:16px
+}
+.btn-unm{
+    display:inline-block;
+    background:#007A87;
+    color:#fff;
+    font-weight:800;
+    font-size:20px;
+    padding:16px 36px;
+    border-radius:14px;
+    border:2px solid #005E69;
+    text-decoration:none;
+    transition:transform .2s ease;
+    animation:glowPulseBtn 2.4s ease-in-out infinite
+}
+.btn-unm:hover{ transform:translateY(-1px) }
+
+/* Footer */
+footer{
+    padding:16px 24px 40px;
+    color:var(--muted);
+    font-size:16px;
+}
+
+/* Focus */
+:focus-visible{
+    outline:3px solid var(--ring);
+    outline-offset:2px;
+    border-radius:6px
+}
 </style>
 </head>
 <body>
 
-<h1>New Mexico Behavioral Health &amp; Demographics Dashboard (2023)</h1>
-
-<div class="toolbar" role="tablist" aria-label="Show insight groups">
-  <button class="btn active" data-group="demographics" role="tab" aria-selected="true">Demographics</button>
-  <button class="btn" data-group="service" role="tab" aria-selected="false">Service Demand</button>
-  <button class="btn" data-group="mortality" role="tab" aria-selected="false">Mortality</button>
-  <button class="btn" data-group="dwi" role="tab" aria-selected="false">DWI Dispositions</button>
-  <button class="btn" id="btn-all" role="tab" aria-selected="false">Show All</button>
+<!-- TOP LOGO BAR -->
+<div style="
+width:100%;
+background:#ffffff;
+padding:18px 0;
+text-align:center;
+border-bottom:1px solid #e6e6e6;
+">
+  <img src="CHP Logo.png" 
+       alt="UNM College of Population Health – The Center for Health Policy" 
+       style="max-width:480px; width:100%; height:auto;">
 </div>
 
-<main>
-  <section class="grid">
+<!-- HERO -->
+<header class="hero wrap">
+  <div class="hero-inner wrap">
+    <div class="text">
+      <h1 class="title">New Mexico Complex Discharges Data Collection</h1>
+      <p class="subtitle" style="margin-top:12px; color:#eaffff;">
+        Welcome! Thank you for participating in the UNM Center for Health Policy’s Complex Discharge Study.
+        Below you’ll find instructions for submitting your facility’s data.
+        Data collection will run from <strong>January 15 through April 15, 2026</strong>.
+      </p>
+    </div>
+  </div>
+</header>
 
-    <!-- DEMOGRAPHICS (first) -->
-    <article class="card group show" data-group="demographics">
-      <h2>
-        <span class="icon-wrap">
-          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="Race icon">
-        </span>
-        1) Population by Race/Ethnicity
-      </h2>
-      <ul class="insights">
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="">
-          <div>White residents are the majority across most counties, with notable <strong>AI/AN</strong> concentrations in <strong>McKinley</strong>, <strong>Cibola</strong>, and <strong>Rio Arriba</strong>.</div>
-        </li>
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="">
-          <div><strong>Santa Fe</strong> and <strong>Bernalillo</strong> show greater racial diversity than many rural counties.</div>
-        </li>
-      </ul>
-      <figure>
-        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Race%20by%20county.png" alt="Race/Ethnicity by County">
-        <figcaption><span>Race/Ethnicity by County (100% stacked)</span></figcaption>
-      </figure>
-    </article>
+<!-- SECTION: Steps + Working definitions ON THE RIGHT -->
+<section class="section wrap">
+  <div class="card">
+    <div class="motion-accent"></div>
 
-    <article class="card group show" data-group="demographics">
-      <h2>
-        <span class="icon-wrap">
-          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="Gender icon">
-        </span>
-        2) Age &amp; Gender Distribution
-      </h2>
-      <ul class="insights">
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="">
-          <div>Most counties have a clear majority <strong>18+ (75–85%)</strong>, indicating adult-driven service demand.</div>
-        </li>
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="">
-          <div>Younger structures in <strong>Lea</strong> and <strong>McKinley</strong> may signal higher future service needs.</div>
-        </li>
-      </ul>
-      <figure class="big-figure gender-figure">
-        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Gender.png" alt="Age Distribution by Sex">
-        <figcaption><span>Age Distribution by Sex (Under 18 vs 18+)</span></figcaption>
-      </figure>
-    </article>
+    <div class="grid-2">
+      <!-- LEFT: Steps/content -->
+      <div>
+        <h2>1) Designate a Point of Contact</h2>
+        <p>Each hospital must identify:</p>
+        <ul>
+          <li><strong>Primary point of contact (POC)</strong> – responsible for entering and submitting data.</li>
+          <li><strong>Optional secondary POC</strong> – may submit on behalf of the primary.</li>
+        </ul>
 
-    <!-- SERVICE DEMAND -->
-    <article class="card group" data-group="service">
-      <h2>
-        <span class="icon-wrap">
-          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="Service icon">
-        </span>
-        3) Service Demand &amp; Behavioral Health Metrics
-      </h2>
-      <ul class="insights">
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="">
-          <div>Crisis calls, dispatches, and ER visits are heavily concentrated in <strong>Bernalillo</strong>, <strong>Doña Ana</strong>, and <strong>San Juan</strong>.</div>
-        </li>
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="">
-          <div>Smaller rural counties like <strong>Catron</strong>, <strong>De Baca</strong>, and <strong>Harding</strong> show minimal use and low reported deaths.</div>
-        </li>
-      </ul>
-      <figure>
-        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/behavioural%20metrix%20by%20county.png" alt="BH Service Metrics">
-      </figure>
-    </article>
+        <h2>2) Return Your Letter of Support</h2>
+        <ul>
+          <li>You will receive a Letter of Support (LOS) template from the UNM CHP team.</li>
+          <li>Please return the letter on your facility’s letterhead, signed by the CEO or authorized designee, in PDF format no later than <strong>January 5, 2026</strong>.</li>
+          <li>You will be unable to submit data if we do not receive the completed letter.</li>
+        </ul>
 
-    <!-- MORTALITY -->
-    <article class="card group" data-group="mortality">
-      <h2>
-        <span class="icon-wrap">
-          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="Deaths icon">
-        </span>
-        4) Drug Overdose Deaths (Counts)
-      </h2>
-      <ul class="insights">
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="">
-          <div><strong>Bernalillo (376 deaths)</strong> accounts for nearly 40% of statewide drug deaths (948 total).</div>
-        </li>
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="">
-          <div>Other major contributors include <strong>Santa Fe</strong>, <strong>Doña Ana</strong>, and <strong>Rio Arriba</strong>.</div>
-        </li>
-      </ul>
-      <figure class="big-figure">
-        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20deaths%202.png" alt="Overdose Deaths by County">
-        <figcaption><span>Overdose Deaths by County (Counts)</span></figcaption>
-      </figure>
-    </article>
+        <!-- BLUE INFO BANNER -->
+        <div class="info-banner">
+          Please email POC information and completed Letters of Support to Stefany Goradia
+          (<a href="mailto:sngoradia@salud.unm.edu">sngoradia@salud.unm.edu</a>).
+        </div>
 
-    <article class="card group" data-group="mortality">
-      <h2>
-        <span class="icon-wrap">
-          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="Rates icon">
-        </span>
-        5) Deaths vs Population Context
-      </h2>
-      <ul class="insights">
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="">
-          <div><strong>Rio Arriba</strong> and <strong>Torrance</strong> show disproportionately high overdose burdens.</div>
-        </li>
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="">
-          <div>Rural counties face outsized mortality despite smaller populations.</div>
-        </li>
-      </ul>
-      <figure>
-        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/Drug%20overdose%20rates.png" alt="Deaths vs Population">
-      </figure>
-    </article>
+        <h2>3) Track Your Complex Discharge Cases</h2>
+        <p>We recommend maintaining an internal tracking sheet throughout the study period to simplify reporting. Include patients who meet all the following criteria:</p>
+        <ul>
+          <li><strong>Population:</strong> Inpatient admissions, all insurance types.</li>
+          <li><strong>Avoidable delay:</strong> Patient is medically ready but experiencing a discharge delay.</li>
+          <li><strong>Discharge date:</strong> falls between <strong>January 15 – April 15, 2026</strong>.</li>
+          <li><strong>Exclusion:</strong> Do not include patients in swing bed status.</li>
+        </ul>
 
-    <!-- DWI -->
-    <article class="card group" data-group="dwi">
-      <h2>
-        <span class="icon-wrap">
-          <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="DWI icon">
-        </span>
-        6) DWI Case Dispositions
-      </h2>
-      <ul class="insights">
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="">
-          <div>Conviction rates average <strong>54%</strong> statewide; <strong>Rio Arriba</strong> and <strong>Santa Fe</strong> show longer case times and higher pending rates.</div>
-        </li>
-        <li class="insight-item">
-          <img class="bullet-icon" src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="">
-          <div>Faster conviction times in counties like <strong>Curry</strong> and <strong>Guadalupe</strong>.</div>
-        </li>
-      </ul>
-      <figure>
-        <img src="https://raw.githubusercontent.com/KoushikTripurari/New-Mexico-Behavioral-Health-Demographics-Dashboard-2023-/main/DWI%20(2).png" alt="DWI Outcomes">
-      </figure>
-    </article>
+        <h2>4) Data Submission Guidelines</h2>
+        <ul>
+          <li>Submit cases as they occur, or in batches (i.e., weekly).</li>
+          <li>At minimum, please submit at least once per month (by the last day of February, March, and April).</li>
+          <li>One survey submission = one delayed discharge case.</li>
+          <li>Submit data only after the patient has been discharged.</li>
+          <li>If a patient remains admitted as of April 15, the survey includes a field to indicate this.</li>
+        </ul>
 
-  </section>
-</main>
+        <!-- UPDATED HOW TO SUBMIT SECTION -->
+        <div style="
+          background:#e0f4f8;
+          border:1px solid #0c8a96;
+          padding:16px 18px;
+          border-radius:14px;
+          margin-top:16px;
+          color:#103b40;
+        ">
+          <h3 style="margin-top:0; margin-bottom:10px; color:#0c5f68; font-size:20px;">
+            How to Submit Data
+          </h3>
+          <ul style="margin:0 0 0 18px; padding:0;">
+            <li>
+              Click on the REDCap survey link
+              <span class="muted">(use the same link to submit data throughout the study period)</span>
+            </li>
+            <li>Review the consent information.</li>
+            <li>If you agree, enter the unique hospital identifier provided to you by the UNM CHP team.</li>
+            <li>Complete all required fields and click <strong>Submit</strong>.</li>
+            <li>Repeat for each complex patient discharge being reported.</li>
+            <li>Repeat this process for each patient meeting criteria.</li>
+          </ul>
+        </div>
 
-<script>
-  const btns = document.querySelectorAll('.btn');
-  const groupCards = document.querySelectorAll('.card.group');
-  const btnAll = document.getElementById('btn-all');
+        <p class="muted">
+          Please note that you will be logged out after <strong>30 minutes</strong> of inactivity; incomplete submissions will appear as highlighted.
+        </p>
+      </div>
 
-  function setActiveButton(targetBtn){
-    btns.forEach(b=>{
-      const isActive = (b === targetBtn);
-      b.classList.toggle('active', isActive);
-      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
-  }
+      <!-- RIGHT: Working definitions panel -->
+      <aside class="side-panel">
+        <h2>
+          <span class="clip" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="18" height="18" rx="3" stroke="#0c8a96" stroke-width="1.6"/>
+              <path d="M8 7h8M8 12h8M8 17h5" stroke="#14c3cf" stroke-width="1.6"/>
+            </svg>
+          </span>
+          Working definitions
+        </h2>
 
-  function showGroup(group){
-    if(group === 'ALL'){
-      groupCards.forEach(c => c.classList.add('show'));
-      setActiveButton(btnAll);
-      return;
-    }
-    groupCards.forEach(c => c.classList.toggle('show', c.dataset.group === group));
-    const btn = Array.from(btns).find(b => b.dataset.group === group);
-    if(btn) setActiveButton(btn);
-    window.scrollTo({top: document.querySelector('main').offsetTop - 8, behavior:'smooth'});
-  }
+        <div class="def-list">
+          <div class="def-card">
+            <h3>Complex discharge</h3>
+            <p>When a patient is stabilized and medically ready for discharge, but is unable to be discharged due to internal or external barriers.</p>
+          </div>
 
-  btns.forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const group = b.dataset.group || (b.id === 'btn-all' ? 'ALL' : null);
-      if(group) showGroup(group);
-    });
-  });
+          <div class="def-card">
+            <h3>Total avoidable days</h3>
+            <p>The total number of days the patient remained delayed in the hospital after being medically ready for discharge. If discharge readiness happened partway through a day, count it as one full day.</p>
+          </div>
 
-  // Default view: Demographics
-  showGroup('demographics');
-</script>
+          <div class="def-card">
+            <h3>Insurance/financial coverage days</h3>
+            <p>Days waiting for an insurer to make a decision (e.g., prior authorization, continued-stay review, financial eligibility determination). Includes all days waiting on insurer response.</p>
+          </div>
+
+          <div class="def-card">
+            <h3>Placement setting/screening days</h3>
+            <p>Days spent waiting for a facility or service (e.g., SNF, assisted living, group home, rehab, behavioral health facility, home care agency) to review the referral, accept the patient, and confirm a bed is available.</p>
+          </div>
+
+          <div class="def-card">
+            <h3>Agency process days</h3>
+            <p>Days spent waiting for state agency involvement, including eligibility determinations, assignment of workers, required assessments, or decisions about accepting the referral (e.g., CYFD, APS, BHSD, DDSD, ISD). Medical insurance eligibility should be captured under the "Insurance or financial coverage" category.</p>
+          </div>
+
+          <div class="def-card">
+            <h3>Guardianship days</h3>
+            <p>Days waiting for a guardian or legal decision-maker to be appointed when none is available, from initiation of guardianship proceedings to legal finalization that enables discharge decisions. Includes time required for court processes, attorney coordination, and required evaluations.</p>
+          </div>
+
+          <div class="def-card">
+            <h3>Advance care planning days</h3>
+            <p>Days spent completing required documentation or decision-making related to goals of care (e.g., advance directives, healthcare proxy, POST/MOLST forms) that must be finalized before safe discharge or placement.</p>
+          </div>
+        </div>
+      </aside>
+    </div><!-- /grid-2 -->
+  </div>
+</section>
+
+<!-- SECTION: Support & Links + Survey CTA -->
+<section class="section wrap">
+  <div class="card">
+    <div class="motion-accent"></div>
+    <h2>
+      <span class="clip" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M7 12a5 5 0 0 1 5-5h2" stroke="#0c8a96" stroke-width="1.6"/>
+          <path d="M17 12a5 5 0 0 1-5 5H10" stroke="#14c3cf" stroke-width="1.6"/>
+          <path d="M14 10l4-4" stroke="#0c8a96" stroke-width="1.6"/>
+        </svg>
+      </span>
+      Support & Links
+    </h2>
+    <ul>
+      <li>
+        Technical and program questions:
+        <a href="mailto:sngoradia@salud.unm.edu">sngoradia@salud.unm.edu</a>
+      </li>
+
+      <li>
+        Example Internal Tracking Sheet:
+        <a href="example-internal-tracking-sheet.xlsx" download>
+          download here
+        </a>
+        <span class="muted">[will send this to you next week]</span>
+      </li>
+
+      <li>
+        <a href="Complex Discharges - Letter of Support.docx" download>
+          Complex Discharges – Letter of Support  
+        </a>
+      </li>
+
+      <li>
+        <a href="Complex Discharges - Project Info Sheet.pdf" download target="_blank">
+          Project Information Sheet
+        </a>
+      </li>
+
+      <li>
+        Data Collection Elements:
+        <a href="data-collection-elements.xlsx" download>
+          download here
+        </a>
+        <span class="muted">[revising – will send this to you next week]</span>
+      </li>
+
+      <li>
+        Project kick-off video:
+        <a href="https://www.youtube.com/watch?v=hp8zTshhDi0"
+           target="_blank"
+           rel="noopener"
+           style="color:#0c8a96; font-weight:600;">
+          kick-off video
+        </a>
+      </li>
+
+      <li>Data submission instructions video: link pending</li>
+
+      <li>IRB: HRRC ID# 25-450</li>
+    </ul>
+
+    <!-- Centered UNM Survey CTA -->
+    <div class="survey-cta">
+      <p>Access the survey here</p>
+      <a class="btn-unm" href="https://ctsctrials.health.unm.edu/redcap/surveys/?s=JTJXXRYLFWXFPNHR" target="_blank" rel="noopener">
+        Open Survey Form
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="wrap">
+</footer>
 
 </body>
 </html>
-
-
