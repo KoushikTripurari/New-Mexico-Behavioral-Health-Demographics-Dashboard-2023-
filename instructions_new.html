@@ -27,7 +27,7 @@ html,body{
     padding:0;
     background:var(--bg);
     color:var(--ink);
-    font:18px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial; /* increased base font */
+    font:18px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 }
 a{color:var(--turquoise);text-decoration:none}
 a:hover{text-decoration:underline}
@@ -59,7 +59,7 @@ a:hover{text-decoration:underline}
     pointer-events:none
 }
 
-/* (Logo styles kept in case you reuse later, but no circle SVG in markup now) */
+/* Logo placeholder (not used currently) */
 .logo{flex:0 0 110px;height:110px;position:relative}
 .logo svg{
     width:110px;
@@ -77,20 +77,20 @@ a:hover{text-decoration:underline}
     color:#eaffff;
     background:rgba(255,255,255,.08);
     backdrop-filter:saturate(1.2) blur(2px);
-    font-size:16px; /* was 14px */
+    font-size:16px;
 }
 .title{
     margin:0;
     line-height:1.05;
     letter-spacing:.2px;
     font-weight:800;
-    font-size:clamp(42px,6vw,72px); /* unchanged per your request */
+    font-size:clamp(42px,6vw,72px);
 }
 .subtitle{
     margin:8px 0 0;
     color:#e7fbfd;
     max-width:1200px;
-    font-size:clamp(18px,2.4vw,22px); /* increased */
+    font-size:clamp(18px,2.4vw,22px);
 }
 
 /* Sections */
@@ -100,18 +100,24 @@ a:hover{text-decoration:underline}
     border:1px solid var(--line);
     border-radius:18px;
     box-shadow:var(--shadow);
-    padding:18px
+    padding:18px;
+    position:relative;
+    overflow:hidden;
+    transform:translateY(6px);
+    transition:transform .5s ease, box-shadow .5s ease;
+    animation:glowGold 6s ease-in-out infinite;
 }
+.card:hover{transform:translateY(0)}
 .card h2{
     margin:4px 0 12px;
-    font-size:24px; /* was 22px */
+    font-size:24px;
     display:flex;
     align-items:center;
     gap:8px
 }
 .card h3{
     margin:14px 0 8px;
-    font-size:18px; /* was 16px */
+    font-size:18px;
     color:var(--muted)
 }
 .note{
@@ -128,7 +134,18 @@ a:hover{text-decoration:underline}
 }
 .muted{
     color:var(--muted);
-    font-size:16px; /* was 14px */
+    font-size:16px;
+}
+
+/* Light blue info banner */
+.info-banner{
+    background:#e0f4f8;              /* matches How to Submit Data background */
+    border:1px solid #0c8a96;        /* same border as that box */
+    color:#103b40;
+    padding:10px 18px;
+    border-radius:14px;
+    margin-top:10px;
+    font-size:16px;
 }
 
 /* Golden Yellow Glow for every block */
@@ -137,14 +154,6 @@ a:hover{text-decoration:underline}
     50%  { box-shadow:0 0 34px rgba(255,198,0,.45),0 0 64px rgba(255,198,0,.22) }
     100% { box-shadow:0 0 0 rgba(255,198,0,0) }
 }
-.card{
-    position:relative;
-    overflow:hidden;
-    transform:translateY(6px);
-    transition:transform .5s ease, box-shadow .5s ease;
-    animation:glowGold 6s ease-in-out infinite;
-}
-.card:hover{transform:translateY(0)}
 .card .motion-accent{
     position:absolute;
     inset:auto 0 0 0;
@@ -159,7 +168,7 @@ a:hover{text-decoration:underline}
 /* Two-column layout INSIDE the first card */
 .card .grid-2{
     display:grid;
-    grid-template-columns: 1.4fr 1fr;  /* left larger than right */
+    grid-template-columns: 1.4fr 1fr;
     gap:16px;
     align-items:start;
 }
@@ -172,12 +181,12 @@ a:hover{text-decoration:underline}
     border:1px solid var(--line);
     border-radius:14px;
     padding:16px;
-    background:#e0f4f8;   /* light blue so it stands out */
+    background:#e0f4f8;
 }
 
 .card .side-panel h2{
     margin:4px 0 12px;
-    font-size:26px; /* bumped from 24px */
+    font-size:26px;
 }
 
 /* Simple definition cards */
@@ -197,13 +206,13 @@ a:hover{text-decoration:underline}
 
 .def-card h3{
     margin:0 0 4px;
-    font-size:20px; /* was 18px */
+    font-size:20px;
     color:#0c5f68;
 }
 
 .def-card p{
     margin:0;
-    font-size:18px; /* was 16px */
+    font-size:18px;
     line-height:1.6;
 }
 
@@ -216,7 +225,7 @@ a:hover{text-decoration:underline}
 .survey-cta{ text-align:center; margin:32px 0 }
 .survey-cta p{
     font-weight:800;
-    font-size:22px; /* was 20px */
+    font-size:22px;
     color:var(--unm-cherry);
     margin-bottom:16px
 }
@@ -225,7 +234,7 @@ a:hover{text-decoration:underline}
     background:#007A87;
     color:#fff;
     font-weight:800;
-    font-size:20px; /* was 18px */
+    font-size:20px;
     padding:16px 36px;
     border-radius:14px;
     border:2px solid #005E69;
@@ -239,7 +248,7 @@ a:hover{text-decoration:underline}
 footer{
     padding:16px 24px 40px;
     color:var(--muted);
-    font-size:16px; /* was 14px */
+    font-size:16px;
 }
 
 /* Focus */
@@ -268,8 +277,6 @@ border-bottom:1px solid #e6e6e6;
 <!-- HERO -->
 <header class="hero wrap">
   <div class="hero-inner wrap">
-    <!-- Removed circular SVG logo here -->
-
     <div class="text">
       <h1 class="title">New Mexico Complex Discharges Data Collection</h1>
       <p class="subtitle" style="margin-top:12px; color:#eaffff;">
@@ -303,6 +310,12 @@ border-bottom:1px solid #e6e6e6;
           <li>You will be unable to submit data if we do not receive the completed letter.</li>
         </ul>
 
+        <!-- BLUE INFO BANNER -->
+        <div class="info-banner">
+          Please email POC information and completed Letters of Support to Stefany Goradia
+          (<a href="mailto:sngoradia@salud.unm.edu">sngoradia@salud.unm.edu</a>).
+        </div>
+
         <h2>3) Track Your Complex Discharge Cases</h2>
         <p>We recommend maintaining an internal tracking sheet throughout the study period to simplify reporting. Include patients who meet all the following criteria:</p>
         <ul>
@@ -321,6 +334,7 @@ border-bottom:1px solid #e6e6e6;
           <li>If a patient remains admitted as of April 15, the survey includes a field to indicate this.</li>
         </ul>
 
+        <!-- UPDATED HOW TO SUBMIT SECTION -->
         <div style="
           background:#e0f4f8;
           border:1px solid #0c8a96;
@@ -330,14 +344,18 @@ border-bottom:1px solid #e6e6e6;
           color:#103b40;
         ">
           <h3 style="margin-top:0; margin-bottom:10px; color:#0c5f68; font-size:20px;">
-            How to submit a survey
+            How to Submit Data
           </h3>
           <ul style="margin:0 0 0 18px; padding:0;">
-            <li>Click on the REDCap survey link.</li>
-            <li>Read the consent.</li>
-            <li>Enter your unique hospital ID number.</li>
-            <li>Complete all required fields.</li>
-            <li>Click submit.</li>
+            <li>
+              Click on the REDCap survey link
+              <span class="muted">(use the same link to submit data throughout the study period)</span>
+            </li>
+            <li>Review the consent information.</li>
+            <li>If you agree, enter the unique hospital identifier provided to you by the UNM CHP team.</li>
+            <li>Complete all required fields and click <strong>Submit</strong>.</li>
+            <li>Repeat for each complex patient discharge being reported.</li>
+            <li>Repeat this process for each patient meeting criteria.</li>
           </ul>
         </div>
 
@@ -365,43 +383,33 @@ border-bottom:1px solid #e6e6e6;
           </div>
 
           <div class="def-card">
-            <h3>Avoidable hours/days</h3>
-            <p>Hours/days when a patient is stabilized and ready for discharge but is unable to be discharged.</p>
+            <h3>Total avoidable days</h3>
+            <p>The total number of days the patient remained delayed in the hospital after being medically ready for discharge. If discharge readiness happened partway through a day, count it as one full day.</p>
           </div>
 
           <div class="def-card">
             <h3>Insurance/financial coverage days</h3>
-            <p>From first coverage request to final determination (approval or denial), including insurer correspondence delays.</p>
+            <p>Days waiting for an insurer to make a decision (e.g., prior authorization, continued-stay review, financial eligibility determination). Includes all days waiting on insurer response.</p>
           </div>
 
           <div class="def-card">
-            <h3>Placement setting days</h3>
-            <p>From first placement request to notice of availability (bed or slot). Track separate attempts if done in parallel.</p>
+            <h3>Placement setting/screening days</h3>
+            <p>Days spent waiting for a facility or service (e.g., SNF, assisted living, group home, rehab, behavioral health facility, home care agency) to review the referral, accept the patient, and confirm a bed is available.</p>
           </div>
 
           <div class="def-card">
-            <h3>Placement screening days</h3>
-            <p>From screening start to screening determination; include back-and-forth for additional information.</p>
-          </div>
-
-          <div class="def-card">
-            <h3>Agency eligibility process days</h3>
-            <p>From initial eligibility request to final eligibility determination by the agency.</p>
-          </div>
-
-          <div class="def-card">
-            <h3>Agency referral process days</h3>
-            <p>From first referral submission to final referral decision (accept, decline, or waitlist).</p>
+            <h3>Agency process days</h3>
+            <p>Days spent waiting for state agency involvement, including eligibility determinations, assignment of workers, required assessments, or decisions about accepting the referral (e.g., CYFD, APS, BHSD, DDSD, ISD). Medical insurance eligibility should be captured under the "Insurance or financial coverage" category.</p>
           </div>
 
           <div class="def-card">
             <h3>Guardianship days</h3>
-            <p>From initiation of guardianship proceedings to legal finalization that enables discharge decisions.</p>
+            <p>Days waiting for a guardian or legal decision-maker to be appointed when none is available, from initiation of guardianship proceedings to legal finalization that enables discharge decisions. Includes time required for court processes, attorney coordination, and required evaluations.</p>
           </div>
 
           <div class="def-card">
             <h3>Advance care planning days</h3>
-            <p>From start of advance care planning to completion (for example, health care proxy, MOLST/POST forms).</p>
+            <p>Days spent completing required documentation or decision-making related to goals of care (e.g., advance directives, healthcare proxy, POST/MOLST forms) that must be finalized before safe discharge or placement.</p>
           </div>
         </div>
       </aside>
@@ -423,7 +431,7 @@ border-bottom:1px solid #e6e6e6;
       </span>
       Support & Links
     </h2>
-        <ul>
+    <ul>
       <li>
         Technical and program questions:
         <a href="mailto:sngoradia@salud.unm.edu">sngoradia@salud.unm.edu</a>
@@ -438,17 +446,15 @@ border-bottom:1px solid #e6e6e6;
       </li>
 
       <li>
-  <a href="Complex Discharges - Letter of Support.docx" download>
-    Complex Discharges – Letter of Support  
-  </a>
-</li>
+        <a href="Complex Discharges - Letter of Support.docx" download>
+          Complex Discharges – Letter of Support  
+        </a>
+      </li>
 
       <li>
-        
-        <a href="Complex Discharges - Project Info Sheet.pdf" download target="_blank" >
+        <a href="Complex Discharges - Project Info Sheet.pdf" download target="_blank">
           Project Information Sheet
         </a>
-       
       </li>
 
       <li>
@@ -473,7 +479,6 @@ border-bottom:1px solid #e6e6e6;
 
       <li>IRB: HRRC ID# 25-450</li>
     </ul>
-
 
     <!-- Centered UNM Survey CTA -->
     <div class="survey-cta">
