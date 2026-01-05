@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CHW/R Approved Z Diagnosis Codes (2025) — Reference Page</title>
+<style>
+  :root{
+    --ink:#1b1b1b;
+    --muted:#6b7280;
+    --bg:#f7f8fa;
+    --card:#ffffff;
+    --line:#e5e7eb;
+
+    /* UNM-ish accents */
+    --turquoise:#007A87;
+    --cherry:#BA0C2F;
+
+    --shadow: 0 10px 22px rgba(0,0,0,.06);
+    --radius: 16px;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+    color:var(--ink);
+    background: linear-gradient(180deg, #eef6f7 0%, var(--bg) 48%, var(--bg) 100%);
+  }
+
+  header{
+    padding: 18px 16px 10px;
+    border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(90deg, rgba(0,122,135,.12), rgba(186,12,47,.10));
+  }
+  .wrap{max-width:1100px;margin:0 auto}
+
+  .title-row{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+  h1{
+    margin:0;
+    font-size: 20px;
+    letter-spacing:.2px;
+  }
+  .sub{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size: 13px;
+    line-height: 1.35;
+    max-width: 760px;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid rgba(0,0,0,.10);
+    background:rgba(255,255,255,.75);
+    padding:8px 10px;
+    border-radius:999px;
+    font-size:12px;
+    color:#0f172a;
+    box-shadow: 0 4px 14px rgba(0,0,0,.04);
+    user-select:none;
+    white-space:nowrap;
+  }
+  .dot{
+    width:10px;height:10px;border-radius:50%;
+    background: var(--turquoise);
+    box-shadow: 0 0 0 3px rgba(0,122,135,.15);
+  }
+
+  main{padding: 18px 16px 34px}
+  .grid{
+    display:grid;
+    grid-template-columns: 1.25fr .75fr;
+    gap: 14px;
+  }
+  @media (max-width: 940px){
+    .grid{grid-template-columns:1fr}
+  }
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .card-h{
+    padding: 14px 14px 10px;
+    border-bottom:1px solid var(--line);
+    display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  }
+  .card-h h2{
+    margin:0;
+    font-size: 15px;
+    letter-spacing:.2px;
+  }
+  .card-h .small{
+    color:var(--muted);
+    font-size:12px;
+  }
+  .card-b{padding: 12px 14px 14px}
+
+  /* Controls */
+  .controls{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;
+    padding: 12px 14px;
+    border-bottom:1px solid var(--line);
+    background: #fbfbfc;
+  }
+  .field{
+    display:flex;flex-direction:column;gap:6px;
+    min-width: 240px;
+    flex: 1;
+  }
+  label{font-size:12px;color:var(--muted)}
+  input[type="search"], select{
+    width:100%;
+    padding: 10px 12px;
+    border:1px solid var(--line);
+    border-radius: 12px;
+    outline:none;
+    font-size: 13px;
+    background:#fff;
+  }
+  input[type="search"]:focus, select:focus{
+    border-color: rgba(0,122,135,.45);
+    box-shadow: 0 0 0 4px rgba(0,122,135,.10);
+  }
+  .btns{
+    display:flex;gap:8px;flex-wrap:wrap;
+  }
+  button{
+    border:1px solid rgba(0,0,0,.10);
+    background:#fff;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    cursor:pointer;
+    transition: transform .02s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  button:hover{
+    border-color: rgba(0,0,0,.22);
+    box-shadow: 0 8px 18px rgba(0,0,0,.06);
+  }
+  button:active{transform: translateY(1px)}
+  .primary{
+    background: linear-gradient(180deg, rgba(0,122,135,.95), rgba(0,122,135,.85));
+    color:#fff;
+    border-color: rgba(0,122,135,.6);
+  }
+  .danger{
+    background: linear-gradient(180deg, rgba(186,12,47,.95), rgba(186,12,47,.85));
+    color:#fff;
+    border-color: rgba(186,12,47,.6);
+  }
+
+  /* Table */
+  table{width:100%; border-collapse: collapse}
+  thead th{
+    text-align:left;
+    font-size:12px;
+    color:#0f172a;
+    padding: 10px 12px;
+    background: #f6f7f9;
+    border-bottom:1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  tbody td{
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    font-size: 13px;
+  }
+  tbody tr:hover{background: rgba(0,122,135,.04)}
+  .code{
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 12.5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(0,0,0,.05);
+    display:inline-block;
+  }
+  .meta-row{
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+    padding: 10px 14px;
+    border-top: 1px solid var(--line);
+    background: #fbfbfc;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .pill{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid var(--line);
+    background:#fff;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:12px;
+    color:#0f172a;
+  }
+
+  /* Notes editor */
+  .note-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .notes{
+    width:100%;
+    min-height: 330px;
+    resize: vertical;
+    padding: 12px 12px;
+    border:1px solid var(--line);
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    outline:none;
+    background:#fff;
+  }
+  .notes:focus{
+    border-color: rgba(0,122,135,.45);
+    box-shadow: 0 0 0 4px rgba(0,122,135,.10);
+  }
+  .help{
+    margin-top:10px;
+    font-size:12px;
+    color:var(--muted);
+    line-height: 1.35;
+  }
+  .toast{
+    position: fixed;
+    left: 50%;
+    bottom: 16px;
+    transform: translateX(-50%);
+    background: rgba(17,24,39,.95);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    box-shadow: 0 10px 24px rgba(0,0,0,.18);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index: 999;
+  }
+  .toast.show{
+    opacity: 1;
+    transform: translateX(-50%) translateY(-4px);
+  }
+</style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="title-row">
+      <div>
+        <h1>CHW/R Approved Z Diagnosis Codes (2025)</h1>
+        <p class="sub">
+          Reference list of Z diagnosis codes (e.g., education, housing, food, transportation, social environment)
+          used in CHW/R-related analyses. Use search + filters to quickly find codes, and save notes on the right.
+        </p>
+      </div>
+      <div class="badge" title="Single-page reference with search + notes (saved in your browser)">
+        <span class="dot"></span>
+        Local Notes Saved (Browser)
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="wrap grid">
+
+    <!-- LEFT: TABLE -->
+    <section class="card" aria-label="Z code list">
+      <div class="card-h">
+        <div>
+          <h2>Z Code List</h2>
+          <div class="small">Search by code or description. Sort by clicking the column headers.</div>
+        </div>
+        <div class="pill" id="countPill">Total: 0</div>
+      </div>
+
+      <div class="controls">
+        <div class="field">
+          <label for="q">Search</label>
+          <input id="q" type="search" placeholder="Type: Z59.41 or food, housing, unemployment..." autocomplete="off" />
+        </div>
+        <div class="field" style="min-width:220px;max-width:260px;">
+          <label for="domain">Quick filter (domain)</label>
+          <select id="domain">
+            <option value="all">All domains</option>
+            <option value="education">Education & Literacy (Z55)</option>
+            <option value="employment">Employment (Z56)</option>
+            <option value="environment">Environment (Z58)</option>
+            <option value="housing">Housing / Utilities / Economic (Z59)</option>
+            <option value="social">Social environment (Z60)</option>
+            <option value="upbringing">Upbringing / support group (Z62–Z63)</option>
+          </select>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="copyVisible">Copy visible list</button>
+          <button id="copySelected">Copy selected</button>
+          <button id="addToNotes">Add selected to notes</button>
+          <button class="danger" id="clearFilters">Clear</button>
+        </div>
+      </div>
+
+      <div style="max-height: 520px; overflow:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:40px;"><input id="selAll" type="checkbox" title="Select all visible" /></th>
+              <th id="thCode" data-sort="code" style="cursor:pointer;width:130px;">Diagnosis Code ▲</th>
+              <th id="thDesc" data-sort="desc" style="cursor:pointer;">Diagnosis Description</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="meta-row">
+        <div><span id="visibleCount">0</span> codes shown</div>
+        <div>Tip: Use <span class="code">Z59</span> to filter housing/economic codes quickly.</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: NOTES -->
+    <aside class="card" aria-label="Notes editor">
+      <div class="card-h">
+        <div>
+          <h2>Notes / Definitions</h2>
+          <div class="small">Editable. Auto-saves to your browser.</div>
+        </div>
+        <div class="note-actions">
+          <button class="primary" id="saveNotes">Save</button>
+          <button id="exportNotes">Export .txt</button>
+          <button id="printPage">Print</button>
+        </div>
+      </div>
+      <div class="card-b">
+        <textarea id="notes" class="notes" spellcheck="true"
+          placeholder="Type your notes here… (e.g., CHW/R definition, assumptions, inclusion/exclusion rules)."></textarea>
+        <div class="help">
+          • Notes are stored using <b>localStorage</b> (this browser + this computer).<br/>
+          • Use “Add selected to notes” to paste chosen Z-codes into your notes.
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<div class="toast" id="toast">Saved</div>
+
+<script>
+  // ----- Data -----
+  const ZCODES = [
+    {code:"Z55.0", desc:"Illiteracy and Low-Level Literacy"},
+    {code:"Z55.2", desc:"Failed School Examinations"},
+    {code:"Z55.3", desc:"Underachievement In School"},
+    {code:"Z55.4", desc:"Educational Maladjustment & Discord With Teachers & Classmates"},
+    {code:"Z55.5", desc:"Less Than A High School Diploma"},
+    {code:"Z55.6", desc:"Problems Related to Health Literacy"},
+    {code:"Z55.8", desc:"Other Problems Related To Education And Literacy"},
+    {code:"Z56.0", desc:"Unemployment, Unspecified"},
+    {code:"Z56.89", desc:"Other Problems Related To Employment"},
+    {code:"Z56.9", desc:"Unspecified Problems Related To Employment"},
+    {code:"Z58.6", desc:"Inadequate Drinking-Water Supply"},
+    {code:"Z58.89", desc:"Other Problems Related To Physical Environment"},
+    {code:"Z59.01", desc:"Sheltered Homeless"},
+    {code:"Z59.02", desc:"Unsheltered Homelessness"},
+    {code:"Z59.10", desc:"Inadequate Housing, Unspecified"},
+    {code:"Z59.12", desc:"Inadequate Housing Utilities"},
+    {code:"Z59.19", desc:"Other Inadequate Housing"},
+    {code:"Z59.41", desc:"Food Insecurity"},
+    {code:"Z59.48", desc:"Other Specified Lack of Adequate Food"},
+    {code:"Z59.5", desc:"Extreme Poverty"},
+    {code:"Z59.6", desc:"Low Income"},
+    {code:"Z59.811", desc:"Housing Instability, Housed, With Risk of Homelessness"},
+    {code:"Z59.812", desc:"Housing Instability, Housed, Homelessness In Past 12 Months"},
+    {code:"Z59.82", desc:"Transportation Insecurity"},
+    {code:"Z59.89", desc:"Other Problems Related To Housing And Economic Circumstances"},
+    {code:"Z60.0", desc:"Problems of Adjustment To Life- Cycle Transitions"},
+    {code:"Z60.2", desc:"Problems Related To Living Alone"},
+    {code:"Z60.3", desc:"Acculturation Difficulty"},
+    {code:"Z60.4", desc:"Social Exclusion and Rejection"},
+    {code:"Z60.8", desc:"Other Problems Related to Social Environment"},
+    {code:"Z62.9", desc:"Problem related to upbringing, unspecified"},
+    {code:"Z63.9", desc:"Problem related to primary support group, unspecified"}
+  ];
+
+  // ----- State -----
+  let sortKey = "code";
+  let sortDir = "asc"; // asc | desc
+
+  const els = {
+    q: document.getElementById("q"),
+    domain: document.getElementById("domain"),
+    tbody: document.getElementById("tbody"),
+    countPill: document.getElementById("countPill"),
+    visibleCount: document.getElementById("visibleCount"),
+    selAll: document.getElementById("selAll"),
+    toast: document.getElementById("toast"),
+    notes: document.getElementById("notes"),
+    thCode: document.getElementById("thCode"),
+    thDesc: document.getElementById("thDesc"),
+    copyVisible: document.getElementById("copyVisible"),
+    copySelected: document.getElementById("copySelected"),
+    addToNotes: document.getElementById("addToNotes"),
+    clearFilters: document.getElementById("clearFilters"),
+    saveNotes: document.getElementById("saveNotes"),
+    exportNotes: document.getElementById("exportNotes"),
+    printPage: document.getElementById("printPage")
+  };
+
+  // ----- Helpers -----
+  function toast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>els.toast.classList.remove("show"), 1200);
+  }
+
+  function domainOf(code){
+    // Code prefix determines domain bucket
+    if(code.startsWith("Z55")) return "education";
+    if(code.startsWith("Z56")) return "employment";
+    if(code.startsWith("Z58")) return "environment";
+    if(code.startsWith("Z59")) return "housing";
+    if(code.startsWith("Z60")) return "social";
+    if(code.startsWith("Z62") || code.startsWith("Z63")) return "upbringing";
+    return "all";
+  }
+
+  function getFiltered(){
+    const q = (els.q.value || "").trim().toLowerCase();
+    const dom = els.domain.value;
+
+    let rows = ZCODES.slice();
+
+    if(dom !== "all"){
+      rows = rows.filter(r => domainOf(r.code) === dom);
+    }
+
+    if(q){
+      rows = rows.filter(r => (r.code.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q)));
+    }
+
+    // sort
+    rows.sort((a,b)=>{
+      const va = (sortKey === "code") ? a.code : a.desc;
+      const vb = (sortKey === "code") ? b.code : b.desc;
+      const cmp = va.localeCompare(vb, undefined, {numeric:true, sensitivity:"base"});
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+
+    return rows;
+  }
+
+  function render(){
+    const rows = getFiltered();
+
+    // Update counts
+    els.countPill.textContent = `Total: ${ZCODES.length}`;
+    els.visibleCount.textContent = rows.length;
+
+    // Reset select-all based on visible
+    els.selAll.checked = false;
+    els.selAll.indeterminate = false;
+
+    // Build table body
+    els.tbody.innerHTML = rows.map((r, idx) => `
+      <tr>
+        <td><input type="checkbox" class="rowSel" data-code="${r.code}" data-desc="${escapeHtml(r.desc)}" aria-label="Select ${r.code}"/></td>
+        <td><span class="code">${r.code}</span></td>
+        <td>${escapeHtml(r.desc)}</td>
+      </tr>
+    `).join("");
+
+    // Recompute header arrows
+    const codeArrow = (sortKey === "code") ? (sortDir === "asc" ? " ▲" : " ▼") : "";
+    const descArrow = (sortKey === "desc") ? (sortDir === "asc" ? " ▲" : " ▼") : "";
+    els.thCode.textContent = "Diagnosis Code" + codeArrow;
+    els.thDesc.textContent = "Diagnosis Description" + descArrow;
+  }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function getSelected(){
+    return Array.from(document.querySelectorAll(".rowSel:checked"))
+      .map(cb => ({code: cb.dataset.code, desc: cb.dataset.desc}));
+  }
+
+  async function copyText(text){
+    try{
+      await navigator.clipboard.writeText(text);
+      toast("Copied to clipboard");
+    }catch(e){
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast("Copied (fallback)");
+    }
+  }
+
+  // ----- Events -----
+  els.q.addEventListener("input", render);
+  els.domain.addEventListener("change", render);
+
+  els.thCode.addEventListener("click", ()=>{
+    if(sortKey === "code"){ sortDir = (sortDir === "asc") ? "desc" : "asc"; }
+    else{ sortKey = "code"; sortDir = "asc"; }
+    render();
+  });
+  els.thDesc.addEventListener("click", ()=>{
+    if(sortKey === "desc"){ sortDir = (sortDir === "asc") ? "desc" : "asc"; }
+    else{ sortKey = "desc"; sortDir = "asc"; }
+    render();
+  });
+
+  els.selAll.addEventListener("change", ()=>{
+    const checks = Array.from(document.querySelectorAll(".rowSel"));
+    checks.forEach(cb => cb.checked = els.selAll.checked);
+  });
+
+  // Select-all indeterminate behavior
+  document.addEventListener("change", (e)=>{
+    if(!e.target.classList.contains("rowSel")) return;
+    const checks = Array.from(document.querySelectorAll(".rowSel"));
+    const checked = checks.filter(cb => cb.checked);
+    if(checked.length === 0){
+      els.selAll.checked = false;
+      els.selAll.indeterminate = false;
+    }else if(checked.length === checks.length){
+      els.selAll.checked = true;
+      els.selAll.indeterminate = false;
+    }else{
+      els.selAll.checked = false;
+      els.selAll.indeterminate = true;
+    }
+  });
+
+  els.copyVisible.addEventListener("click", ()=>{
+    const rows = getFiltered();
+    const text = rows.map(r => `${r.code} - ${r.desc}`).join("\n");
+    copyText(text);
+  });
+
+  els.copySelected.addEventListener("click", ()=>{
+    const sel = getSelected();
+    if(sel.length === 0) return toast("No rows selected");
+    const text = sel.map(r => `${r.code} - ${r.desc}`).join("\n");
+    copyText(text);
+  });
+
+  els.addToNotes.addEventListener("click", ()=>{
+    const sel = getSelected();
+    if(sel.length === 0) return toast("No rows selected");
+    const block = sel.map(r => `- ${r.code} — ${r.desc}`).join("\n");
+    const cur = els.notes.value.trimEnd();
+    els.notes.value = (cur ? (cur + "\n\n") : "") + "Selected Z Codes:\n" + block + "\n";
+    saveNotes(true);
+    toast("Added to notes");
+  });
+
+  els.clearFilters.addEventListener("click", ()=>{
+    els.q.value = "";
+    els.domain.value = "all";
+    render();
+    toast("Cleared");
+  });
+
+  // ----- Notes: localStorage -----
+  const NOTES_KEY = "chw_zcodes_notes_v1";
+  function loadNotes(){
+    const saved = localStorage.getItem(NOTES_KEY);
+    if(saved !== null){
+      els.notes.value = saved;
+    }else{
+      // starter template (optional)
+      els.notes.value =
+`CHW/R Z Diagnosis Codes — Notes
+
+• Use this page to reference approved Z codes.
+• Add your definition notes, assumptions, and inclusion/exclusion logic here.
+
+Definition draft:
+- Mandatory: Rendering taxonomy = 172V00000X
+- Mandatory: Rendering specialty = 230
+- Mandatory: Approved Z diagnosis code present
+- Provider type may vary (462 often observed, but not required)
+
+`;
+    }
+  }
+  function saveNotes(silent=false){
+    localStorage.setItem(NOTES_KEY, els.notes.value);
+    if(!silent) toast("Saved");
+  }
+
+  els.saveNotes.addEventListener("click", ()=>saveNotes(false));
+  els.notes.addEventListener("input", ()=>{
+    // autosave lightly (debounced)
+    clearTimeout(saveNotes._t);
+    saveNotes._t = setTimeout(()=>saveNotes(true), 350);
+  });
+
+  els.exportNotes.addEventListener("click", ()=>{
+    const blob = new Blob([els.notes.value], {type:"text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "CHWR_ZCodes_Notes.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("Exported .txt");
+  });
+
+  els.printPage.addEventListener("click", ()=>window.print());
+
+  // ----- Init -----
+  loadNotes();
+  render();
+</script>
+</body>
+</html>
