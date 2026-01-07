@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CHW/R — Claims-Based Definition (2025 Medicaid)</title>
+
+<style>
+  :root{
+    --bg:#f6f7fb;
+    --card:#ffffff;
+    --ink:#0f172a;
+    --muted:#5b677a;
+    --line:#e5e7eb;
+
+    --green:#16a34a;
+    --red:#ef4444;
+
+    --highlight:#fff59d;
+    --shadow:0 12px 28px rgba(0,0,0,.10);
+
+    /* NEW: colorful accents */
+    --blue:#2563eb;
+    --cyan:#06b6d4;
+    --violet:#7c3aed;
+    --pink:#ec4899;
+    --amber:#f59e0b;
+    --teal:#14b8a6;
+
+    --softBlue: rgba(37,99,235,.10);
+    --softCyan: rgba(6,182,212,.10);
+    --softViolet: rgba(124,58,237,.10);
+    --softAmber: rgba(245,158,11,.12);
+    --softTeal: rgba(20,184,166,.10);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background:
+      radial-gradient(900px 380px at 10% 0%, rgba(37,99,235,.16), transparent 55%),
+      radial-gradient(900px 420px at 92% 8%, rgba(236,72,153,.12), transparent 55%),
+      radial-gradient(900px 420px at 50% 100%, rgba(6,182,212,.12), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+  }
+
+  /* 100% width */
+  .wrap{
+    width:100%;
+    max-width:none;
+    margin:0;
+    padding:18px 18px 60px;
+  }
+
+  header{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+
+  .brand{
+    display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap;
+  }
+  .mark{
+    width:44px;height:44px;border-radius:16px;
+    background: conic-gradient(from 180deg, var(--blue), var(--violet), var(--pink), var(--cyan), var(--blue));
+    box-shadow: var(--shadow);
+  }
+  h1{margin:0;font-size:20px;line-height:1.2}
+  .sub{margin:6px 0 0;color:var(--muted);max-width:120ch;line-height:1.45}
+
+  .actions{display:flex; gap:10px; flex-wrap:wrap}
+  .btn{
+    border:1px solid rgba(15,23,42,.10);
+    background:#fff;
+    padding:10px 12px;
+    border-radius:14px;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    font-weight:900;
+    font-size:13px;
+  }
+  .btn.primary{
+    background: linear-gradient(180deg, rgba(37,99,235,.14), rgba(255,255,255,1));
+    border-color: rgba(37,99,235,.25);
+  }
+  .btn:hover{filter:brightness(.985)}
+
+  /* Tabs (2 pages) */
+  .tabs{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:10px 0 14px;
+  }
+  .tab{
+    border:1px solid rgba(15,23,42,.10);
+    background:#fff;
+    padding:10px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    font-weight:950;
+    font-size:13px;
+    box-shadow:var(--shadow);
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .tab .dotTab{width:10px;height:10px;border-radius:999px;background:var(--cyan)}
+  .tab[aria-selected="true"]{
+    border-color: rgba(37,99,235,.25);
+    background: linear-gradient(180deg, rgba(37,99,235,.10), #fff);
+  }
+  #tab1 .dotTab{background:var(--violet)}
+  #tab2 .dotTab{background:var(--amber)}
+
+  .page{display:none}
+  .page.active{display:block}
+
+  /* Common cards */
+  .card{
+    background:rgba(255,255,255,.90);
+    border:1px solid rgba(15,23,42,.10);
+    border-radius:18px;
+    padding:14px;
+    box-shadow:var(--shadow);
+    backdrop-filter: blur(6px);
+  }
+
+  /* ===================== Page 1 (Definition) — NEW colorful styling ===================== */
+
+  .heroDef{
+    border-radius:20px;
+    padding:16px;
+    border:1px solid rgba(15,23,42,.10);
+    box-shadow: var(--shadow);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.70)),
+      radial-gradient(900px 260px at 10% 0%, rgba(124,58,237,.18), transparent 55%),
+      radial-gradient(900px 260px at 95% 0%, rgba(6,182,212,.14), transparent 55%);
+  }
+
+  .chipsRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .chip{
+    border:1px solid rgba(15,23,42,.10);
+    background:#fff;
+    padding:8px 10px;
+    border-radius:999px;
+    font-weight:900;
+    font-size:12px;
+    color:var(--muted);
+    display:inline-flex;gap:8px;align-items:center;
+  }
+  .chip b{color:var(--ink)}
+  .chip .miniDot{width:10px;height:10px;border-radius:999px}
+  .chip.a .miniDot{background:var(--violet)}
+  .chip.b .miniDot{background:var(--cyan)}
+  .chip.c .miniDot{background:var(--amber)}
+  .chip.d .miniDot{background:var(--teal)}
+
+  .docGrid{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:12px;
+    margin-top:12px;
+  }
+  .docCard{grid-column: span 12}
+  @media(min-width:980px){
+    .docCard.half{grid-column: span 6}
+  }
+
+  .doc h2{margin:0 0 10px;font-size:16px}
+  .doc h3{margin:14px 0 6px;font-size:14px}
+  .doc p{margin:8px 0;line-height:1.55;color:var(--ink)}
+  .doc ul{margin:8px 0 8px 18px}
+  .doc li{margin:6px 0;line-height:1.5}
+
+  .callout{
+    border-radius:16px;
+    padding:12px;
+    border:1px solid rgba(15,23,42,.10);
+    background:#fff;
+    position:relative;
+    overflow:hidden;
+  }
+  .callout::before{
+    content:"";
+    position:absolute; inset:0;
+    background: linear-gradient(90deg, rgba(37,99,235,.14), rgba(124,58,237,.10), rgba(236,72,153,.10), rgba(6,182,212,.10));
+    opacity:.55;
+    pointer-events:none;
+  }
+  .callout > *{position:relative; z-index:1}
+
+  .blockTitle{
+    display:flex;align-items:center;gap:10px;margin:0 0 8px;
+    font-weight:950;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 10px;border-radius:999px;
+    font-size:12px;font-weight:950;
+    border:1px solid rgba(15,23,42,.10);
+    background:#fff;
+  }
+  .badge .bDot{width:10px;height:10px;border-radius:999px}
+  .badge.policy .bDot{background:var(--violet)}
+  .badge.finding .bDot{background:var(--cyan)}
+  .badge.warn .bDot{background:var(--amber)}
+  .badge.final .bDot{background:var(--teal)}
+
+  .ruleBox{
+    border-radius:16px;
+    padding:12px;
+    border:1px dashed rgba(15,23,42,.20);
+    background: linear-gradient(180deg, #ffffff, #fbfbff);
+  }
+  .ruleBox.mandatory{background: linear-gradient(180deg, var(--softViolet), #fff)}
+  .ruleBox.context{background: linear-gradient(180deg, var(--softTeal), #fff)}
+  .ruleBox.support{background: linear-gradient(180deg, var(--softAmber), #fff)}
+
+  .pill{
+    display:inline-block;
+    font-size:12px;
+    color:var(--muted);
+    border:1px solid rgba(15,23,42,.10);
+    padding:6px 8px;
+    border-radius:999px;
+    background:#fff;
+    margin:6px 6px 0 0;
+    font-weight:900;
+  }
+
+  .split{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:12px;
+    margin-top:10px;
+  }
+  .split > div{grid-column: span 12}
+  @media(min-width:980px){
+    .split > div{grid-column: span 6}
+  }
+
+  /* ===================== Page 2 (Counts Summary) — kept from before ===================== */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap:12px;
+  }
+  .countCard{
+    grid-column: span 12;
+    background:rgba(255,255,255,.92);
+    border:1px solid rgba(15,23,42,.10);
+    border-radius:16px;
+    padding:14px;
+    box-shadow:var(--shadow);
+    backdrop-filter: blur(6px);
+  }
+  @media(min-width:900px){
+    .countCard{grid-column: span 6;}
+  }
+  .countCard.highlight{
+    background: linear-gradient(180deg, rgba(255,245,157,.75), #fff);
+    border-color: #f2d96b;
+  }
+
+  .titleRow{display:flex;gap:10px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+  .title{margin:0;font-size:15px;line-height:1.25}
+  .pillMini{
+    display:inline-block;
+    font-size:12px;
+    color:var(--muted);
+    border:1px solid rgba(15,23,42,.10);
+    padding:6px 8px;
+    border-radius:999px;
+    background:#fff;
+    margin:0 0 0 6px;
+    font-weight:900;
+  }
+
+  .metrics{
+    margin-top:10px;
+    display:grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:10px;
+  }
+  .metric{
+    border:1px solid rgba(15,23,42,.10);
+    border-radius:14px;
+    padding:10px;
+    background:#fff;
+  }
+  .k{font-size:12px;color:var(--muted)}
+  .v{font-size:18px;font-weight:900;margin-top:2px}
+
+  .commentBox{
+    margin-top:10px;
+    border-top:1px dashed rgba(15,23,42,.14);
+    padding-top:10px;
+  }
+  .tag{
+    display:inline-block;
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.35px;
+    text-transform:uppercase;
+    padding:5px 8px;
+    border:1px solid rgba(15,23,42,.10);
+    border-radius:10px;
+    background:#fff;
+    color:var(--muted);
+  }
+  .commentText{margin:8px 0 0;line-height:1.45}
+  .decisionText{margin:8px 0 0;line-height:1.45;font-weight:900}
+
+  .viz{
+    margin-top:12px;
+    border:1px dashed rgba(15,23,42,.18);
+    border-radius:14px;
+    padding:12px;
+    background:#fff;
+  }
+  .bar{
+    width:min(760px,100%);
+    height:14px;
+    border-radius:999px;
+    background:#f3f4f6;
+    overflow:hidden;
+    border:1px solid rgba(15,23,42,.10);
+  }
+  .barPaid{height:100%;float:left;background:var(--green)}
+  .barDenied{height:100%;float:left;background:var(--red)}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-bottom:8px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:6px;vertical-align:middle}
+  .dot.g{background:var(--green)}
+  .dot.r{background:var(--red)}
+
+  .conclusion{
+    margin-top:18px;
+    border:1px solid rgba(15,23,42,.10);
+    background:#ffffff;
+    border-radius:16px;
+    padding:14px;
+    box-shadow:var(--shadow);
+  }
+  .conclusion h3{margin:0 0 8px;font-size:15px}
+  .conclusion p{margin:6px 0 0;line-height:1.5;color:#111827}
+  .conclusion .note{color:var(--muted);font-weight:900}
+
+  /* Tooltips */
+  .tt{
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    cursor:help;
+    border-bottom: 1px dotted #9ca3af;
+    text-decoration:none;
+    color:inherit;
+    outline:none;
+  }
+  .tt .q{
+    display:inline-grid;
+    place-items:center;
+    width:16px;height:16px;
+    border-radius:999px;
+    border:1px solid rgba(15,23,42,.12);
+    font-size:11px;
+    color:var(--muted);
+    background:#fff;
+    font-weight:950;
+  }
+  .tt::after{
+    content: attr(data-tip);
+    position:absolute;
+    left:0;
+    bottom: calc(100% + 10px);
+    min-width: 220px;
+    max-width: 380px;
+    background:#0b1226;
+    color:#fff;
+    padding:10px 10px;
+    border-radius:12px;
+    box-shadow:0 18px 40px rgba(0,0,0,.25);
+    font-size:12px;
+    line-height:1.35;
+    opacity:0;
+    transform: translateY(6px);
+    pointer-events:none;
+    transition: opacity .15s ease, transform .15s ease;
+    z-index:9999;
+    white-space:normal;
+  }
+  .tt::before{
+    content:"";
+    position:absolute;
+    left:14px;
+    bottom: calc(100% + 4px);
+    border:6px solid transparent;
+    border-top-color:#0b1226;
+    opacity:0;
+    transform: translateY(6px);
+    transition: opacity .15s ease, transform .15s ease;
+    pointer-events:none;
+    z-index:9999;
+  }
+  .tt:hover::after, .tt:hover::before,
+  .tt:focus::after, .tt:focus::before,
+  .tt.tt-open::after, .tt.tt-open::before{
+    opacity:1;
+    transform: translateY(0);
+  }
+
+  /* ✅ PRINT/PDF: hide tooltips entirely */
+  @media print{
+    .actions,.tabs{display:none !important}
+    body{background:#fff}
+    .card,.countCard,.conclusion,.heroDef{box-shadow:none}
+
+    .tt{border-bottom:none !important}
+    .tt .q{display:none !important}
+    .tt::after, .tt::before{display:none !important; content:none !important;}
+  }
+</style>
+</head>
+
+<body>
+<div class="wrap" id="pageRoot">
+
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <h1>Community Health Worker / Representative (CHW/R) — Claims-Based Definition (2025 Medicaid)</h1>
+        <p class="sub">
+          Page 1: Policy + claims-based definition. Page 2: Evidence (counts summary).
+        </p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="window.print()">Print / Save as PDF</button>
+      <button class="btn" onclick="downloadHTML()">Download HTML</button>
+      <button class="btn" onclick="downloadWord()">Download Word (.doc)</button>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Pages">
+    <button class="tab" id="tab1" aria-selected="true" onclick="showPage(1)"><span class="dotTab"></span>Page 1 — Definition</button>
+    <button class="tab" id="tab2" aria-selected="false" onclick="showPage(2)"><span class="dotTab"></span>Page 2 — Counts Summary</button>
+  </nav>
+
+  <!-- ======================= PAGE 1 ======================= -->
+  <section class="page active" id="page1">
+
+    <div class="heroDef">
+      <h2 style="margin:0 0 6px;font-size:16px">Overview</h2>
+      <p style="margin:0;color:var(--muted);line-height:1.5">
+        This page defines CHW/R services using 2025 Medicaid claims data, guided by the LOD and its August supplement (2025),
+        validated through claims from January–August 2025.
+      </p>
+      <div class="chipsRow">
+        <span class="chip a"><span class="miniDot"></span><b>Policy-guided</b> (LOD + Aug supplement)</span>
+        <span class="chip b"><span class="miniDot"></span><b>Empirically reviewed</b> (Jan–Aug 2025)</span>
+        <span class="chip c"><span class="miniDot"></span><b>Strict vs Broader</b> strategy</span>
+        <span class="chip d"><span class="miniDot"></span><b>Operational framework</b> (final)</span>
+      </div>
+    </div>
+
+    <div class="docGrid doc" style="margin-top:12px">
+      <div class="card docCard">
+        <div class="callout">
+          <div class="blockTitle">
+            <span class="badge policy"><span class="bDot"></span>Definition intent</span>
+          </div>
+          <p style="margin:0">
+            The purpose is to establish a claims-based CHW/R identification framework that reflects policy requirements
+            while accounting for real-world billing variability.
+          </p>
+          <p style="margin:10px 0 0;color:var(--muted);font-weight:850">
+            Note: Although our analysis focuses on Medicaid claims from January–August 2025 and applies guidance from the August 2025 supplement,
+            we expect observed billing patterns and required identifiers to be sufficiently consistent across these months to support a reliable CHW/R claims-based definition for this period.
+          </p>
+        </div>
+      </div>
+
+      <div class="card docCard half">
+        <div class="blockTitle">
+          <span class="badge policy"><span class="bDot"></span>Core Policy Requirements</span>
+        </div>
+        <p style="margin:0 0 8px;color:var(--muted);font-weight:850">
+          Per the LOD and August supplement, CHW/R services must be identified using a combination of mandatory billing fields. No single field alone is sufficient.
+        </p>
+        <div class="ruleBox mandatory">
+          <p style="margin:0 0 8px;font-weight:950">Mandatory Fields (All Required)</p>
+          <ul>
+            <li><b>Rendering taxonomy code:</b> 172V00000X</li>
+            <li><b>Rendering specialty:</b> 230 — Certified CHW/CHR</li>
+            <li><b>Diagnosis codes:</b> Approved Z diagnosis codes specified in the LOD (required)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card docCard half">
+        <div class="blockTitle">
+          <span class="badge finding"><span class="bDot"></span>Provider Type Context</span>
+        </div>
+        <p style="margin:0">
+          Rendering provider type <b>462 (Case Management Agency)</b> is frequently observed, but it is <b>not required</b>.
+          Claims with other provider type values may still represent valid CHW/R services if mandatory fields are met.
+        </p>
+        <div class="ruleBox context" style="margin-top:10px">
+          <p style="margin:0;font-weight:950">Implication</p>
+          <p style="margin:8px 0 0">Provider type should be treated as <b>contextual information</b>, not a defining criterion.</p>
+        </div>
+      </div>
+
+      <div class="card docCard">
+        <div class="blockTitle">
+          <span class="badge warn"><span class="bDot"></span>Important observation</span>
+        </div>
+        <p style="margin:0">
+          <b>172V00000X is necessary but not exclusive.</b> In 2025 claims it appears across multiple roles (physicians, community support workers, behavioral health workers).
+          Therefore taxonomy alone cannot identify CHW/R services.
+        </p>
+        <div class="split">
+          <div class="ruleBox mandatory">
+            <p style="margin:0 0 8px;font-weight:950">Accurate identification requires (simultaneous)</p>
+            <ul style="margin:0 0 0 18px">
+              <li><b>Specialty 230</b>, and</li>
+              <li><b>Approved Z diagnosis code(s)</b></li>
+            </ul>
+          </div>
+          <div class="ruleBox support">
+            <p style="margin:0 0 8px;font-weight:950">Why this matters</p>
+            <p style="margin:0;color:var(--muted);font-weight:850">
+              This avoids over-including claims where 172V00000X is used, but the service is not CHW/R per policy.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card docCard half">
+        <div class="blockTitle">
+          <span class="badge finding"><span class="bDot"></span>Rendering Specialty Codes</span>
+        </div>
+        <div class="ruleBox mandatory">
+          <p style="margin:0 0 6px;font-weight:950">Mandatory Specialty</p>
+          <ul><li><b>230 — Certified CHW/CHR (required)</b></li></ul>
+        </div>
+        <div class="ruleBox support" style="margin-top:10px">
+          <p style="margin:0 0 6px;font-weight:950">Additional Observed (Non-Mandatory)</p>
+          <ul>
+            <li>116 — Community Support Worker</li>
+            <li>430 — Behavioral Health Worker</li>
+          </ul>
+          <p style="margin:8px 0 0;color:var(--muted);font-weight:850">
+            These appear in CHW-aligned services but do not substitute for specialty 230 under the strict definition.
+          </p>
+        </div>
+      </div>
+
+      <div class="card docCard half">
+        <div class="blockTitle">
+          <span class="badge policy"><span class="bDot"></span>Narrow vs Broader Strategy</span>
+        </div>
+        <div class="ruleBox mandatory">
+          <p style="margin:0 0 6px;font-weight:950">Strict (Policy-Aligned)</p>
+          <p style="margin:0">
+            172V00000X + specialty 230 + approved Z → highly specific and policy-consistent CHW/R population, but lower counts.
+          </p>
+        </div>
+        <div class="ruleBox support" style="margin-top:10px">
+          <p style="margin:0 0 6px;font-weight:950">Broader (Exploratory)</p>
+          <p style="margin:0">
+            Some CHW-like services are billed under 116/430; outside the strict definition unless specialty 230 is present.
+          </p>
+        </div>
+      </div>
+
+      <div class="card docCard">
+        <div class="blockTitle">
+          <span class="badge finding"><span class="bDot"></span>Mandatory Z Diagnosis Codes</span>
+        </div>
+        <p style="margin:0">
+          Z diagnosis codes are mandatory and represent social/economic/housing/environment/support-related needs addressed by CHW/R services.
+          Claims must include at least one approved Z code from the LOD list, such as:
+        </p>
+        <div class="ruleBox support" style="margin-top:10px">
+          <ul>
+            <li>Z55.0 — Illiteracy and low-level literacy</li>
+            <li>Z56.0 — Unemployment</li>
+            <li>Z59.01 — Sheltered homelessness</li>
+            <li>Z59.41 — Food insecurity</li>
+            <li>Z59.82 — Transportation insecurity</li>
+            <li>Z60.3 — Acculturation difficulty</li>
+            <li>Z63.9 — Problem related to primary support group</li>
+          </ul>
+          <p style="margin:8px 0 0;color:var(--muted);font-weight:850">
+            (See full approved Z-code list for complete coverage — Approved-Z codes list.)
+          </p>
+        </div>
+      </div>
+
+      <div class="card docCard half">
+        <div class="blockTitle">
+          <span class="badge finding"><span class="bDot"></span>Supporting Procedure Codes</span>
+        </div>
+        <div class="ruleBox support">
+          <ul style="margin:0 0 0 18px">
+            <li>98960 — Self-management education and training (1 patient)</li>
+            <li>98961 — Self-management education and training (2–4 patients)</li>
+            <li>98962 — Self-management education and training (5–8 patients)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card docCard half">
+        <div class="blockTitle">
+          <span class="badge finding"><span class="bDot"></span>Supporting Telehealth Modifiers</span>
+        </div>
+        <div class="ruleBox support">
+          <ul style="margin:0 0 0 18px">
+            <li>GT — Interactive telecommunication</li>
+            <li>95 — Synchronous telemedicine (real-time audio/video)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card docCard">
+        <div class="blockTitle">
+          <span class="badge final"><span class="bDot"></span>Final Operational CHW/R Identification Framework</span>
+        </div>
+
+        <div class="split">
+          <div class="ruleBox mandatory">
+            <p style="margin:0 0 8px;font-weight:950">Mandatory (All Required)</p>
+            <ul>
+              <li>Rendering taxonomy = <b>172V00000X</b></li>
+              <li>Rendering specialty = <b>230</b></li>
+              <li>Approved <b>Z</b> diagnosis code present</li>
+            </ul>
+          </div>
+
+          <div class="ruleBox context">
+            <p style="margin:0 0 8px;font-weight:950">Contextual (Not Required)</p>
+            <ul><li>Rendering provider type (often 462, but may vary)</li></ul>
+          </div>
+
+          <div class="ruleBox support" style="grid-column: span 12;">
+            <p style="margin:0 0 8px;font-weight:950">Supporting (Optional)</p>
+            <ul>
+              <li>Procedure codes 98960–98962</li>
+              <li>Telehealth modifiers GT, 95</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======================= PAGE 2 ======================= -->
+  <section class="page" id="page2">
+    <div class="card" style="margin-bottom:12px">
+      <h2 style="margin:0 0 6px;font-size:16px">CHW Definition Counts Summary</h2>
+      <p style="margin:0;color:var(--muted);line-height:1.45">
+        Counts, comments, and decisions. RNDR_230 is highlighted with a paid vs denied visualization.
+      </p>
+    </div>
+
+    <div class="grid" id="countsGrid"></div>
+
+    <div class="card" style="margin-top:14px">
+      <h2 style="margin:0 0 10px;font-size:16px">Combinations</h2>
+      <div class="grid" id="comboGrid"></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h2 style="margin:0 0 10px;font-size:16px">Supporting counts</h2>
+      <div class="grid" id="supportGrid"></div>
+    </div>
+
+    <div class="conclusion" id="conclusionBox"></div>
+  </section>
+
+</div>
+
+<script>
+  /* ========= Tooltips (Page 2) ========= */
+  const TIP = {
+    "CHW": "Community Health Worker.",
+    "CHR": "Community Health Representative.",
+    "CHW/R": "Community Health Worker / Representative.",
+    "Medicaid": "Public health insurance program. Here, you’re analyzing Medicaid claims to identify CHW/R-related billing patterns.",
+    "RNDR_230": "Rendering specialty code 230 (Certified Community Health Worker / Community Health Representative).",
+    "172V00000X": "Taxonomy code 172V00000X — Community Health Worker taxonomy. Necessary but not exclusive in claims.",
+    "251B00000X": "Taxonomy code 251B00000X — observed alongside RNDR_230 in your claims.",
+    "Z": "Approved ICD-10 Z diagnosis codes (Social Determinants / factors influencing health status). Required per policy.",
+    "GT": "Telehealth modifier GT — interactive telecommunication.",
+    "95": "Telehealth modifier 95 — synchronous telemedicine (real-time audio/video).",
+    "98960-98962": "Self-management education/training procedure codes (supporting, not mandatory).",
+    "Paid": "Claim paid (approved).",
+    "Denied": "Claim denied (not paid)."
+  };
+
+  function escapeHtml(s){
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+  function tt(key){
+    const tip = TIP[key] || key;
+    return `<span class="tt" tabindex="0" data-tip="${escapeHtml(tip)}">${escapeHtml(key)} <span class="q">?</span></span>`;
+  }
+
+  /* ========= Data (Page 2) ========= */
+  const counts = [
+    {
+      label: `Render taxonomy codes – ${tt("172V00000X")}`,
+      claims: 39502, providers: 352, paid: 1808, denied: 37694,
+      comment: `Presence of ${tt("CHW")}s, along with other categories of workers.`,
+      decision: ""
+    },
+    {
+      label: `${tt("RNDR_230")} — render specialty 230`,
+      claims: 509, providers: 22, paid: 191, denied: 318,
+      comment: `Everyone in this group is a ${tt("CHW")}/${tt("CHR")}. During filtering, I also identified an additional taxonomy code: Render Taxonomy – ${tt("251B00000X")}. This taxonomy also was billed in these claims.`,
+      decision: `This can be used for ${tt("CHW/R")} definition but not 100% sure that we capture all the ${tt("CHW")}s`,
+      highlight: true,
+      viz: true
+    },
+    {
+      label: `Diagnosis codes – ${tt("Z")}`,
+      claims: 47784, providers: 2233, paid: 43948, denied: 3836,
+      comment: `Presence of ${tt("CHW")}s but also different categories of workers. Also many Z-code matched claims are done by different categories of medical professionals.`,
+      decision: ""
+    }
+  ];
+
+  const combos = [
+    {
+      label: `Render taxonomy ${tt("172V00000X")} + ${tt("RNDR_230")}`,
+      claims: 255, providers: 9, paid: 79, denied: 176,
+      comment: `Everyone are ${tt("CHW/R")}s in this.`,
+      decision: ""
+    },
+    {
+      label: `Render taxonomy ${tt("172V00000X")} + ${tt("RNDR_230")} + Diagnosis codes ${tt("Z")}`,
+      claims: 49, providers: 6, paid: 46, denied: 3,
+      comment: `Everyone are ${tt("CHW/R")}s in this.`,
+      decision: ""
+    }
+  ];
+
+  const supporting = [
+    {
+      label: `Proc codes ${tt("98960-98962")}`,
+      claims: 1056, providers: 48, paid: 695, denied: 361,
+      comment: `Supporting evidence only (not mandatory). Multiple provider categories can bill these codes.`,
+      decision: ""
+    },
+    {
+      label: `Telehealth modifiers ${tt("GT")}, ${tt("95")}`,
+      claims: 462502, providers: 7278, paid: 445403, denied: 17099,
+      comment: `Supporting evidence only (not mandatory). Many provider types use telehealth modifiers.`,
+      decision: ""
+    }
+  ];
+
+  function fmt(n){ return Number(n).toLocaleString(); }
+  function pct(n, d){ return d ? (n/d*100) : 0; }
+
+  function cardHTML(item){
+    const paidRate = pct(item.paid, item.claims).toFixed(1);
+    const deniedRate = pct(item.denied, item.claims).toFixed(1);
+
+    const vizHTML = item.viz ? (() => {
+      const paidP = pct(item.paid, item.claims);
+      const deniedP = pct(item.denied, item.claims);
+      return `
+        <div class="viz">
+          <div class="legend">
+            <span><span class="dot g"></span>${tt("Paid")}: <b>${fmt(item.paid)}</b> (${paidP.toFixed(1)}%)</span>
+            <span><span class="dot r"></span>${tt("Denied")}: <b>${fmt(item.denied)}</b> (${deniedP.toFixed(1)}%)</span>
+          </div>
+          <div class="bar" aria-label="Paid vs denied bar">
+            <div class="barPaid" style="width:${paidP}%;"></div>
+            <div class="barDenied" style="width:${deniedP}%;"></div>
+          </div>
+        </div>
+      `;
+    })() : "";
+
+    return `
+      <article class="countCard ${item.highlight ? "highlight" : ""}">
+        <div class="titleRow">
+          <h3 class="title">${item.label}</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="pillMini">Paid rate: <b>${paidRate}%</b></span>
+            <span class="pillMini">Denied rate: <b>${deniedRate}%</b></span>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric"><div class="k">Count of Claims</div><div class="v">${fmt(item.claims)}</div></div>
+          <div class="metric"><div class="k">Count of Providers</div><div class="v">${fmt(item.providers)}</div></div>
+          <div class="metric"><div class="k">Paid Claims</div><div class="v">${fmt(item.paid)}</div></div>
+          <div class="metric"><div class="k">Denied Claims</div><div class="v">${fmt(item.denied)}</div></div>
+        </div>
+
+        <div class="commentBox">
+          <span class="tag">Comment</span>
+          <p class="commentText">${item.comment || "—"}</p>
+        </div>
+
+        <div class="commentBox" style="border-top:0;padding-top:0">
+          <span class="tag">Decision</span>
+          <p class="decisionText">${item.decision ? item.decision : "—"}</p>
+        </div>
+
+        ${vizHTML}
+      </article>
+    `;
+  }
+
+  function renderPage2(){
+    document.getElementById("countsGrid").innerHTML = counts.map(cardHTML).join("");
+    document.getElementById("comboGrid").innerHTML = combos.map(cardHTML).join("");
+    document.getElementById("supportGrid").innerHTML = supporting.map(cardHTML).join("");
+
+    const r = counts.find(x => x.highlight);
+    const paidP = pct(r.paid, r.claims), deniedP = pct(r.denied, r.claims);
+
+    document.getElementById("conclusionBox").innerHTML = `
+      <h3>Conclusion (evidence + policy alignment)</h3>
+      <p>
+        In the claims review (Jan–Aug 2025), <b>${tt("RNDR_230")}</b> shows the strongest alignment with CHW/R services
+        compared to taxonomy-only or Z-only approaches.
+      </p>
+      <p class="note">
+        RNDR_230 evidence: <b>${fmt(r.claims)}</b> claims, <b>${fmt(r.providers)}</b> providers,
+        <b>${fmt(r.paid)}</b> paid (${paidP.toFixed(1)}%), <b>${fmt(r.denied)}</b> denied (${deniedP.toFixed(1)}%).
+      </p>
+      <p>
+        Therefore, <b>specialty 230</b> is the most practical anchor for a CHW/R claims-based signal. However, per policy,
+        the strict CHW/R definition should require: <b>172V00000X + specialty 230 + approved Z diagnosis</b>.
+      </p>
+    `;
+  }
+
+  /* ========= 2-page navigation ========= */
+  function showPage(n){
+    document.getElementById("page1").classList.toggle("active", n===1);
+    document.getElementById("page2").classList.toggle("active", n===2);
+    document.getElementById("tab1").setAttribute("aria-selected", String(n===1));
+    document.getElementById("tab2").setAttribute("aria-selected", String(n===2));
+    if(n===2) renderPage2();
+  }
+
+  /* ========= Downloads ========= */
+  function downloadHTML(){
+    const html = "<!doctype html>\n" + document.documentElement.outerHTML;
+    const blob = new Blob([html], {type:"text/html"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "chwR_definition_and_counts.html";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  }
+  window.downloadHTML = downloadHTML;
+
+  function downloadWord(){
+    const head = document.querySelector("head").innerHTML;
+    const body = document.querySelector("#pageRoot").outerHTML;
+
+    const wordHtml = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:w="urn:schemas-microsoft-com:office:word"
+            xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <title>CHW/R — Claims-Based Definition (2025 Medicaid)</title>
+        ${head}
+      </head>
+      <body>
+        ${body}
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([wordHtml], {type:"application/msword"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "chwR_definition_and_counts.doc";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  }
+  window.downloadWord = downloadWord;
+
+  /* ========= Tooltip open/close for mobile ========= */
+  function setupTooltips(){
+    document.addEventListener("click", (e) => {
+      const t = e.target.closest(".tt");
+      document.querySelectorAll(".tt.tt-open").forEach(x => { if (x !== t) x.classList.remove("tt-open"); });
+      if (t) t.classList.toggle("tt-open");
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") document.querySelectorAll(".tt.tt-open").forEach(x => x.classList.remove("tt-open"));
+    });
+  }
+
+  showPage(1);
+  setupTooltips();
+</script>
+</body>
+</html>
